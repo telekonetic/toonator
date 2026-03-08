@@ -32,6 +32,18 @@ async function loadIncludes() {
 loadIncludes();
 </script>
 <script>
+// Pass ?continue param from this page into the iframe src
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const continueId = params.get('continue');
+  const iframeSrc = continueId
+    ? '/draw_HTML/?continue=' + continueId
+    : '/draw_HTML/';
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('drawIframe').src = iframeSrc;
+  });
+})();
+
 var inFullScreen = { value: false };
 $(function(){
     function fullscreenChanged(){
@@ -60,6 +72,7 @@ $(function(){
     document.addEventListener("webkitfullscreenchange", fullscreenChanged);
     document.addEventListener("mozfullscreenchange", fullscreenChanged);
 });
+
 function toggleFullscreen(){
     var dc = $('#draw_container')[0];
     if(!inFullScreen.value){
@@ -72,6 +85,7 @@ function toggleFullscreen(){
         else if(document.mozCancelFullScreen) document.mozCancelFullScreen();
     }
 }
+
 function hideRightPanel() {
   $('.rightpanel').fadeOut();
   var newW = 1000;
@@ -85,18 +99,17 @@ function hideRightPanel() {
     $('#draw_container iframe')[0].contentWindow.resizeEditor(newW);
   });
 }
-
 </script>
 </head>
 <body>
 <div id="header_placeholder"></div>
 <div id="content_wrap">
   <div id="content">
-    <h2>New animation</h2>
+    <h2 id="drawPageTitle">New animation</h2>
     <span style="display:inline-block; background:#cccccc; padding:10px; vertical-align:top; font-size:0; line-height:0;">
       <div id="draw_container" style="width:600px; height:390px;">
-    <iframe src="/draw_HTML/" width="600" height="390" frameborder="0" scrolling="no" style="display:block;"></iframe>
-    </div>
+        <iframe id="drawIframe" src="/draw_HTML/" width="600" height="390" frameborder="0" scrolling="no" style="display:block;"></iframe>
+      </div>
     </span>
     <span class="rightpanel" style="display:inline-block; width:370px; vertical-align:top;">
       <a href="#" style="font:8pt Tahoma; float:right; color:#000" onclick="hideRightPanel(); return false;">hide</a>
@@ -106,15 +119,24 @@ function hideRightPanel() {
       <br><br>
       <a href="/wiki/Editor">Help</a>
     </span>
-    
+
     <script>
     function enablePalette() {
       document.querySelector('iframe').contentWindow.enablePalette();
     }
+
+    // Update page title if continuing
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('continue')) {
+        document.getElementById('drawPageTitle').textContent = 'Continue animation';
+      }
+    })();
     </script>
+
     <div style="clear:both"></div>
   </div>
-<div id="footer_placeholder"></div>
+  <div id="footer_placeholder"></div>
 </div>
 </body>
 </html>

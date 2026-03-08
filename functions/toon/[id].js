@@ -130,7 +130,7 @@ export async function onRequestGet(context) {
   <ul class="topmenu">
     <li><a href="/last/" class="imglink"><div class="override m_last"></div></a></li>
     <li><a href="/popular/day/" class="imglink"><div class="override m_popular"></div></a></li>
-    <li class="red"><a href="/draw_HTML/" class="red"><div class="override m_draw"></div></a></li>
+    <li class="red"><a href="/draw/" class="red"><div class="override m_draw"></div></a></li>
   </ul>
   <ul id="newmenu">
     <li><a href="#" onclick="showAuth('join'); return false;">Join</a></li>
@@ -174,7 +174,7 @@ export async function onRequestGet(context) {
               </a>
             </div>
             <div class="draw">
-              <a href="/draw_HTML/?continue=${id}" class="hover">
+              <a href="/draw/?continue=${id}" class="hover">
                 <img src="/img/1.gif" class="img_pencil"/>Continue
               </a>
             </div>
