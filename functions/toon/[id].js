@@ -1,0 +1,356 @@
+const SUPABASE_URL = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0';
+
+async function supabase(path, options = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+async function rpc(fn, params) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(params)
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${mm}/${dd}/${yyyy} ${hh}:${min}`;
+}
+
+export async function onRequestGet(context) {
+  const { params } = context;
+  const id = params.id;
+
+  if (!id) {
+    return new Response('Not found', { status: 404 });
+  }
+
+  // Fetch the toon
+  const toons = await supabase(`/animations?id=eq.${id}&select=*`);
+  if (!toons || toons.length === 0) {
+    return new Response('Toon not found', { status: 404 });
+  }
+
+  const toon = toons[0];
+
+  // Fetch author info
+  let authorUsername = 'unknown';
+  let authorAvatar = '/img/avatar100.gif';
+
+  if (toon.user_id) {
+    const userData = await rpc('get_user_by_id', { p_user_id: toon.user_id });
+    if (userData && userData.length > 0) {
+      authorUsername = userData[0].username || 'unknown';
+      if (userData[0].avatar_toon_id) {
+        authorAvatar = `${SUPABASE_URL}/storage/v1/object/public/previews/${userData[0].avatar_toon_id}_100.gif`;
+      }
+    }
+  }
+
+  const frames = Array.isArray(toon.frames) ? toon.frames : (toon.frames ? Object.values(toon.frames) : []);
+  const frameCount = frames.length || 1;
+  const title = toon.title || 'Untitled';
+  const description = toon.description || '';
+  const keywords = toon.keywords || '';
+  const createdAt = formatDate(toon.created_at);
+  const previewUrl = `${SUPABASE_URL}/storage/v1/object/public/previews/${id}_100.gif`;
+
+  const tagsHtml = keywords
+    ? keywords.split(',').map(k => k.trim()).filter(Boolean).map(k =>
+        `<a href="/search/${encodeURIComponent(k)}" class="tag">${k}</a>`
+      ).join(' ')
+    : '';
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>${title} - Toonator.com - Draw animation online!</title>
+  <link rel="shortcut icon" href="/img/favicon-eyes.png"/>
+  <link href="/css/font.css" type="text/css" rel="stylesheet"/>
+  <link href="/css/images.css" type="text/css" rel="stylesheet"/>
+  <link href="/style.css" type="text/css" rel="stylesheet"/>
+  <meta property="og:title" content="${title} - Toonator. Draw animation yourself!"/>
+  <meta property="og:description" content="${description || title}"/>
+  <meta property="og:image" content="${previewUrl}"/>
+  <meta property="og:url" content="https://toonator.pages.dev/toon/${id}"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = '${SUPABASE_URL}';
+    const SUPABASE_KEY = '${SUPABASE_ANON_KEY}';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
+</head>
+<body>
+
+<div id="header_wrap"><div id="header">
+  <a href="/" title="Toonator" class="logo"><img src="/img/toonator40.png"/></a>
+  <ul class="topmenu">
+    <li><a href="/last/" class="imglink"><div class="override m_last"></div></a></li>
+    <li><a href="/popular/day/" class="imglink"><div class="override m_popular"></div></a></li>
+    <li class="red"><a href="/draw_HTML/" class="red"><div class="override m_draw"></div></a></li>
+  </ul>
+  <ul id="newmenu">
+    <li><a href="#" onclick="showAuth('join'); return false;">Join</a></li>
+    <li><a href="#" onclick="showAuth('login'); return false;">Sign In</a></li>
+  </ul>
+</div></div>
+
+<div id="content_wrap">
+  <div id="content">
+    <div id="toon_page">
+
+      <div class="toon_panel">
+        <h2><span id="toon_title">${title}</span></h2>
+
+        <div class="player" id="player_container">
+          <canvas id="toonPlayer" width="610" height="350" style="background:#fff;display:block;"></canvas>
+        </div>
+
+        <div class="info">
+          <div class="author">
+            <img class="avatar" src="${authorAvatar}" onerror="this.src='/img/avatar100.gif'"/>
+            <div class="author_name">
+              <a href="/user/${authorUsername}" class="username foreign">${authorUsername}</a>
+            </div>
+            <div class="date">${createdAt}</div>
+          </div>
+
+          <div class="prizes"></div>
+
+          <div class="buttons">
+            <div class="toonmedals"></div>
+            <div class="like hover">
+              <a id="like_link" href="#" onclick="handleLike(); return false;" class="hover">
+                <img src="/img/1.gif" class="img_like"/><span class="black" id="like_value">0</span> Like
+              </a>
+            </div>
+            <div class="favorites">
+              <a href="#" class="hover" id="favlink" onclick="handleFavorite(); return false;">
+                <img src="/img/1.gif" class="img_favorites"/>Favorites
+              </a>
+            </div>
+            <div class="draw">
+              <a href="/draw_HTML/?continue=${id}" class="hover">
+                <img src="/img/1.gif" class="img_pencil"/>Continue
+              </a>
+            </div>
+          </div>
+
+          <div class="line_5"><img src="/img/1.gif"/></div>
+
+          <div class="description" id="description_text_div">
+            <span id="description_text">${description}</span>
+          </div>
+
+          ${tagsHtml ? `<div class="tags" style="margin:5px 0;">${tagsHtml}</div>` : ''}
+
+          <div class="share">
+            <ul class="share">
+              <li>Share:</li>
+              <li><a rel="nofollow" title="Twitter" href="https://twitter.com/intent/tweet?url=https://toonator.pages.dev/toon/${id}&text=${encodeURIComponent(title)}" target="_blank"><div class="shr_tw"></div></a></li>
+              <li><a rel="nofollow" title="Reddit" href="https://reddit.com/submit?url=https://toonator.pages.dev/toon/${id}&title=${encodeURIComponent(title)}" target="_blank"><div class="shr_reddit"></div></a></li>
+            </ul>
+          </div>
+
+          <div class="tcontinues"></div>
+        </div><!-- .info -->
+
+        <div class="left_panel">
+          <div class="toon_comments" id="comments">
+            <span class="header">
+              <span style="float:left">Comments</span>
+              <a href="#" class="new" id="addCommentBtn" onclick="showCommentForm(); return false;">Add comment</a>
+              <div style="clear:both"></div>
+            </span>
+            <div id="comments_form" style="display:none;">
+              <div class="form2">
+                <textarea id="comment_text" rows="3" placeholder="Write a comment..." style="border:1px solid #cccccc;margin:10px;width:580px;font-family:Arial;font-size:10pt;"></textarea>
+              </div>
+              <div class="form2" style="text-align:right;margin-right:10px;margin-bottom:10px;">
+                <button onclick="postComment(); return false;">Post</button>
+                <button onclick="document.getElementById('comments_form').style.display='none'; return false;">Cancel</button>
+              </div>
+            </div>
+            <div id="comments_list">
+              <p style="color:#888888;font-size:10pt;padding:10px;">No comments yet.</p>
+            </div>
+          </div>
+        </div><!-- .left_panel -->
+
+      </div><!-- .toon_panel -->
+    </div><!-- #toon_page -->
+    <div style="clear:both"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <a href="/">Toonator.com</a>. <a href="/feedback">Feedback</a>.
+</div>
+
+<!-- Auth modal -->
+<div id="authModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(127,127,127,0.5);z-index:999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:10px;padding:20px;width:400px;position:relative;">
+    <a href="#" onclick="closeAuth();return false;" style="position:absolute;right:10px;top:10px;text-decoration:none;color:#ccc;font-size:18pt;">✕</a>
+    <h2 id="authTitle" style="font:24pt ToonatorFont;text-align:center;margin:5px 0 15px 0;border-bottom:1px solid #eee;">Join</h2>
+    <div id="authContent"></div>
+  </div>
+</div>
+
+<script src="/js/auth.js"></script>
+
+<script>
+// ---- Toon Player ----
+const TOON_FRAMES = ${JSON.stringify(frames)};
+const TOON_ID = '${id}';
+const canvas = document.getElementById('toonPlayer');
+const ctx = canvas.getContext('2d');
+const renderScale = canvas.width / 600;
+let currentFrame = 0;
+let playing = true;
+
+function drawFrame(frame) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!frame || !frame.strokes) return;
+  for (const stroke of frame.strokes) {
+    if (!stroke.points || stroke.points.length < 2) continue;
+    ctx.beginPath();
+    ctx.strokeStyle = stroke.color || '#000';
+    ctx.lineWidth = (stroke.size || 2) * renderScale;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.moveTo(stroke.points[0].x * renderScale, stroke.points[0].y * renderScale);
+    for (let i = 1; i < stroke.points.length; i++) {
+      ctx.lineTo(stroke.points[i].x * renderScale, stroke.points[i].y * renderScale);
+    }
+    ctx.stroke();
+  }
+}
+
+function playAnimation() {
+  if (TOON_FRAMES.length === 0) return;
+  drawFrame(TOON_FRAMES[currentFrame]);
+  if (TOON_FRAMES.length > 1 && playing) {
+    currentFrame = (currentFrame + 1) % TOON_FRAMES.length;
+    setTimeout(playAnimation, 100);
+  }
+}
+
+playAnimation();
+
+// ---- Comments ----
+function showCommentForm() {
+  db.auth.getUser().then(({ data: { user } }) => {
+    if (!user) {
+      showAuth('login');
+      return;
+    }
+    document.getElementById('comments_form').style.display = 'block';
+    document.getElementById('comment_text').focus();
+  });
+}
+
+async function loadComments() {
+  const { data, error } = await db
+    .from('comments')
+    .select('*')
+    .eq('animation_id', TOON_ID)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  const list = document.getElementById('comments_list');
+  if (!data || data.length === 0) {
+    list.innerHTML = '<p style="color:#888888;font-size:10pt;padding:10px;">No comments yet.</p>';
+    return;
+  }
+
+  list.innerHTML = data.map(c => {
+    const avatar = c.author_avatar || '/img/avatar100.gif';
+    const username = c.author_username || 'anonymous';
+    const date = new Date(c.created_at);
+    const dateStr = date.toLocaleDateString('en-US') + ' ' + date.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+    return \`<div class="comment">
+      <div class="avatar">
+        <a href="/user/\${username}"><img class="avatar" src="\${avatar}" onerror="this.src='/img/avatar100.gif'"/></a>
+      </div>
+      <div class="head">
+        <a href="/user/\${username}" class="username foreign">\${username}</a>
+        <span class="date"><b>\${dateStr}</b></span>
+      </div>
+      <div class="text">\${c.text}</div>
+    </div>\`;
+  }).join('');
+}
+
+async function postComment() {
+  const text = document.getElementById('comment_text').value.trim();
+  if (!text) return;
+
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) { showAuth('login'); return; }
+
+  const username = user.user_metadata?.username || user.email;
+
+  const { error } = await db.from('comments').insert({
+    animation_id: TOON_ID,
+    user_id: user.id,
+    author_username: username,
+    text: text
+  });
+
+  if (!error) {
+    document.getElementById('comment_text').value = '';
+    document.getElementById('comments_form').style.display = 'none';
+    loadComments();
+  } else {
+    alert('Error posting comment: ' + error.message);
+  }
+}
+
+function handleLike() {
+  db.auth.getUser().then(({ data: { user } }) => {
+    if (!user) { showAuth('login'); return; }
+    // Like logic placeholder
+    alert('Like feature coming soon!');
+  });
+}
+
+function handleFavorite() {
+  db.auth.getUser().then(({ data: { user } }) => {
+    if (!user) { showAuth('login'); return; }
+    alert('Favorites feature coming soon!');
+  });
+}
+
+loadComments();
+</script>
+
+</body>
+</html>`;
+
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html;charset=UTF-8' }
+  });
+}
