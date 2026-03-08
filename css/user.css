@@ -1,0 +1,195 @@
+/* =============================================
+   user.css - User profile page styles
+   Extracted from original Toonator main.css
+   ============================================= */
+
+/* Layout */
+.userprofile {
+  display: block;
+}
+
+.content_left {
+  width: 680px;
+  float: left;
+}
+
+.content_right {
+  width: 320px;
+  float: left;
+}
+
+/* Username heading */
+h3 {
+  font-size: 24px;
+  font-family: ToonatorFont, Arial;
+  font-weight: normal;
+}
+
+/* Username link colors */
+a.username {
+  color: #005500 !important;
+  font-weight: bold;
+  text-decoration: none;
+}
+a.username:hover {
+  text-decoration: underline;
+}
+a.foreign {
+  color: #3333cc !important;
+}
+
+/* Profile avatar */
+img.p100 {
+  width: 130px;
+  height: 65px;
+  border: 1px solid #cccccc;
+}
+
+/* Album / Favorites / Comments tab links */
+a.nmenu {
+  color: #0000ff;
+  text-decoration: none;
+}
+a.nmenu:hover {
+  color: #0000ff;
+  text-decoration: underline;
+}
+a.nmenu.selected {
+  color: #000000;
+  font-weight: bold;
+}
+
+/* h1 used for the tab row */
+h1 {
+  display: block;
+  font-size: 18px;
+  font-family: ToonatorFont, Verdana;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Toons grid container */
+.toons_container {
+  display: block;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.toons_list {
+  margin: 0 auto;
+  width: 660px;
+  text-align: left;
+}
+
+/* Individual toon card */
+.toon_preview {
+  background-color: #eeeeee;
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
+  width: 210px;
+  margin: 3px;
+  text-align: center;
+  padding: 5px 0 5px 0;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+  position: relative;
+}
+
+/* Owned toon stripe */
+.owned {
+  background-image: url(/img/owned2.gif);
+  background-repeat: repeat-x;
+}
+
+/* Draft (dark) toon card */
+.draft {
+  background: #333333;
+  color: white;
+}
+.draft .toon_name a,
+.draft .toon_tagline,
+.draft .toon_tagline a {
+  color: white;
+}
+
+/* Toon preview image / canvas */
+.toon_preview img,
+.toon_preview canvas {
+  margin-bottom: 5px;
+  width: 200px;
+  height: 100px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Toon title link */
+.toon_preview .toon_name a,
+.toon_preview .toon_name_top a {
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  color: #555555;
+  text-decoration: none;
+}
+.toon_preview a.link {
+  display: inline-block;
+  overflow: hidden;
+  height: 16px;
+}
+
+/* Toon tagline (frame count, comments) */
+.toon_tagline {
+  font-size: 8pt;
+  height: 18px;
+}
+.toon_preview .toon_tagline a {
+  color: #000000;
+}
+.toon_preview .toon_tagline a.noh {
+  text-decoration: none;
+}
+
+/* Gray text helper */
+.grayb {
+  color: #888888;
+}
+
+/* Paginator */
+div.paginator {
+  text-align: center;
+}
+div.paginator ul {
+  padding: 0;
+  margin: 0;
+}
+div.paginator ul li {
+  list-style: none;
+  margin: 1px 5px;
+  font-family: ToonatorFont;
+  font-size: 11pt;
+  font-weight: bold;
+  text-align: center;
+  display: inline-block;
+}
+div.paginator ul li a {
+  text-decoration: none;
+  color: #555555;
+  width: 35px;
+  padding: 5px 0 2px 0;
+  display: inline-block;
+}
+div.paginator ul li a:hover,
+div.paginator ul li.current a {
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  color: black;
+  background: #eeeeee;
+}
+div.paginator ul li.current a {
+  border: 1px solid #888888;
+}
+div.paginator ul li.dots {
+  color: #888888;
+}

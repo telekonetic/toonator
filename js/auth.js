@@ -3,9 +3,15 @@ async function updateAuthUI() {
   const menu = document.getElementById('newmenu');
   if (user) {
     const username = user.user_metadata?.username || user.email;
-    menu.innerHTML = `<li>${username}</li><li><a href="#" onclick="signOut(); return false;">Sign Out</a></li>`;
+    menu.innerHTML = `
+      <li><a href="/user/${username}">${username}</a></li>
+      <li><a href="#" onclick="signOut(); return false;">Sign Out</a></li>
+    `;
   } else {
-    menu.innerHTML = `<li><a href="#" onclick="showAuth('join'); return false;">Join</a></li><li><a href="#" onclick="showAuth('login'); return false;">Sign In</a></li>`;
+    menu.innerHTML = `
+      <li><a href="#" onclick="showAuth('join'); return false;">Join</a></li>
+      <li><a href="#" onclick="showAuth('login'); return false;">Sign In</a></li>
+    `;
   }
 }
 
