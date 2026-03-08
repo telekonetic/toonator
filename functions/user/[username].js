@@ -56,7 +56,9 @@ function getProfileHTML(username, page) {
           <h3 id="profile_username_wrap">
             <a href="/user/${username}" class="username foreign" id="profile_username">${username}</a>
           </h3>
-          <img id="profile_avatar" src="/img/avatar100.gif" width="200" height="100"/>
+          <div class="center">
+            <img id="profile_avatar" src="/img/avatar100.gif" class="p100"/>
+          </div>
         </div>
         Total toons: <span id="stat_toons">...</span><br/>
         Total comments: <span id="stat_comments">0</span><br/>

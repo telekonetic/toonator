@@ -300,3 +300,12 @@ div.paginator ul li.current a {
 div.paginator ul li.dots {
     color: #888888;
 }
+
+img.p100 {
+    width: 130px;
+    height: 65px;
+    border: 1px solid #cccccc;
+}
+.center {
+    text-align: center;
+}
