@@ -149,7 +149,7 @@ async function loadProfile() {
   renderPaginator(totalPages, 'paginator_bottom');
 }
 
-function renderToons(toons) {
+function renderToons(toons, commentCounts) {  // ✅ add commentCounts param
   const list = document.getElementById('toons_list');
   if (toons.length === 0) {
     list.innerHTML = '<p style="color:#888888;font-size:10pt;padding:10px 0;">No toons yet.</p>';
@@ -161,6 +161,8 @@ function renderToons(toons) {
     const frameCount = frames.length || 1;
     const title = toon.title || 'Untitled';
     const frameLabel = frameCount === 1 ? '1 frame' : '<b>' + frameCount + '</b> frames';
+    const cc = commentCounts[toon.id] || 0;  // ✅ moved here
+    const commentLabel = cc === 0 ? '<span class="grayb">No comments</span>' : '<b>' + cc + '</b> comment' + (cc === 1 ? '' : 's');
 
     return '<div class="toon_preview toon_preview_' + toon.id + '">' +
       '<div class="toon_image">' +
@@ -170,9 +172,7 @@ function renderToons(toons) {
       '</div>' +
       '<div class="toon_name"><a class="link" href="/toon/' + toon.id + '">' + title + '</a></div>' +
       '<div class="toon_tagline">' + frameLabel + '</div>' +
-      const cc = commentCounts[toon.id] || 0;
-      const commentLabel = cc === 0 ? '<span class="grayb">No comments</span>' : '<b>' + cc + '</b> comment' + (cc === 1 ? '' : 's');
-      '<div class="toon_tagline">' + commentLabel + '</div>' +
+      '<div class="toon_tagline">' + commentLabel + '</div>' +  // ✅ now valid
     '</div>';
   }).join('');
 }
