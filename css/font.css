@@ -1,29 +1,9 @@
 @font-face {
     font-family: 'ToonatorFont';
-    src: url('https://toonator.neocities.org/img/font/toonator-webfont.eot');
-    src: url('https://toonator.neocities.org/img/font/toonator-webfont.eot?iefix') format('eot'),
-         url('https://toonator.neocities.org/img/font/toonator-webfont.woff') format('woff'),
-         url('https://toonator.neocities.org/img/font/toonator-webfont.ttf') format('truetype');
+    src: url('/img/font/toonator-webfont.eot');
+    src: url('/img/font/toonator-webfont.eot?iefix') format('eot'),
+         url('/img/font/toonator-webfont.woff') format('woff'),
+         url('/img/font/toonator-webfont.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
-
-/*
-     FILE ARCHIVED ON 22:37:59 Feb 25, 2018 AND RETRIEVED FROM THE
-     INTERNET ARCHIVE ON 23:28:45 Mar 07, 2026.
-     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
-
-     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
-     SECTION 108(a)(3)).
-*/
-/*
-playback timings (ms):
-  captures_list: 0.487
-  exclusion.robots: 0.018
-  exclusion.robots.policy: 0.009
-  esindex: 0.009
-  cdx.remote: 11.234
-  LoadShardBlock: 82.063 (3)
-  PetaboxLoader3.datanode: 131.545 (4)
-  load_resource: 71.941
-*/
