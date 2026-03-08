@@ -2,7 +2,8 @@ async function updateAuthUI() {
   const { data: { user } } = await db.auth.getUser();
   const menu = document.getElementById('newmenu');
   if (user) {
-    menu.innerHTML = `<li>${user.email}</li><li><a href="#" onclick="signOut(); return false;">Sign Out</a></li>`;
+    const username = user.user_metadata?.username || user.email;
+    menu.innerHTML = `<li>${username}</li><li><a href="#" onclick="signOut(); return false;">Sign Out</a></li>`;
   } else {
     menu.innerHTML = `<li><a href="#" onclick="showAuth('join'); return false;">Join</a></li><li><a href="#" onclick="showAuth('login'); return false;">Sign In</a></li>`;
   }
