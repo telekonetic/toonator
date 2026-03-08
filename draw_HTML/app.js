@@ -723,7 +723,7 @@ async function loadContinue() {
 
   const { data, error } = await db
     .from('animations')
-    .select('id, title, frames, description, keywords, draft')
+    .select('id, title, frames, description, keywords, is_draft')
     .eq('id', continueId)
     .single();
 
@@ -757,7 +757,7 @@ async function loadContinue() {
   if (nameEl) nameEl.value = data.title || '';
   if (descEl) descEl.value = data.description || '';
   if (kwEl) kwEl.value = data.keywords || '';
-  if (draftEl) draftEl.checked = data.draft || false;
+  if (draftEl) draftEl.checked = data.is_draft || false;
 }
 
 /* =====================================================

@@ -12,9 +12,7 @@ canvas {
 }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-     <script src="/js/gif.js"></script>
-     <script src="/js/save.js"></script>
+<!-- Supabase only once -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const { createClient } = supabase;
@@ -23,6 +21,10 @@ canvas {
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0'
   );
 </script>
+
+<!-- gif.js needed before save.js -->
+<script src="/js/gif.js"></script>
+
 </head>
 <body>
 
@@ -49,28 +51,23 @@ canvas {
       <div id="btnSave"></div>
       <div id="btnPencil"></div>
       <div id="btnEraser"></div>
-      
+
       <div id="btnEyedropper"></div>
-      
+
       <div id="btnSize1"></div>
       <div id="btnSize2"></div>
       <div id="btnSize3"></div>
       <div id="btnSize4"></div>
       <div id="btnSize5"></div>
-      
+
       <div id="btnColorBlack"><div class="colorInner" style="background:#000000;"></div></div>
       <div id="btnColorRed"><div class="colorInner" style="background:#ff0000;"></div></div>
       <div id="btnColorCustom"></div>
       <input type="color" id="colorPicker" value="#ffffff" disabled style="opacity:0; position:absolute; width:24px; height:24px; left:349.3px; top:62px; cursor:pointer; pointer-events:auto;">
-  </div>
+    </div>
   </div>
 
 </div>
-
-<!-- Add this anywhere inside <body>, before the closing </body> tag -->
-<!-- Also add these script tags to your <head>:
-     And make sure db is initialized (copy from your other pages)
--->
 
 <div id="saveDialog" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:#555555; border-radius:8px; padding:24px 28px; width:340px; font-family:Arial, sans-serif; font-size:13px; color:#fff; position:relative;">
@@ -107,6 +104,9 @@ canvas {
   </div>
 </div>
 
+<!-- app.js and save.js at the bottom, after DOM and db are ready -->
 <script src="app.js"></script>
+<script src="/js/save.js"></script>
+
 </body>
 </html>
