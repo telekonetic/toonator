@@ -57,10 +57,13 @@ function generateGif(width, height) {
   return new Promise((resolve, reject) => {
     const gif = new GIF({
       workers: 2,
-      quality: 10,
+      quality: 20,        // higher = lower quality but smaller (default is 10)
       width: width,
       height: height,
-      workerScript: '/js/gif.worker.js'
+      workerScript: '/js/gif.worker.js',
+      dither: false,      // disabling dither reduces size
+      background: '#ffffff',
+      transparent: null
     });
 
     frames.forEach(frame => {
