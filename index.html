@@ -16,18 +16,6 @@
     );
   </script>
   <script src="/js/auth.js"></script>
-  <script>
-    async function loadIncludes() {
-      const header = await fetch('/includes/header.html').then(r => r.text());
-      const footer = await fetch('/includes/footer.html').then(r => r.text());
-      const modal  = await fetch('/includes/auth-modal.html').then(r => r.text());
-      document.getElementById('header_placeholder').innerHTML = header;
-      document.getElementById('footer_placeholder').innerHTML = footer;
-      document.body.insertAdjacentHTML('beforeend', modal);
-      updateAuthUI();
-    }
-    loadIncludes();
-  </script>
 </head>
 <body>
 <div id="header_placeholder"></div>
@@ -68,6 +56,19 @@
 <script>
   const SUPABASE_URL = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0';
+
+  async function loadIncludes() {
+    const [header, footer, modal] = await Promise.all([
+      fetch('/includes/header.html').then(r => r.text()),
+      fetch('/includes/footer.html').then(r => r.text()),
+      fetch('/includes/auth-modal.html').then(r => r.text())
+    ]);
+    document.getElementById('header_placeholder').innerHTML = header;
+    document.getElementById('footer_placeholder').innerHTML = footer;
+    document.body.insertAdjacentHTML('beforeend', modal);
+    // header is now in the DOM, safe to update auth UI
+    updateAuthUI();
+  }
 
   async function apiFetch(path) {
     const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
@@ -149,7 +150,6 @@
   }
 
   async function loadPopular() {
-    // Sort by comment_count + likes descending, limit 6
     const toons = await apiFetch(
       '/animations?select=*&order=comment_count.desc,likes.desc&limit=6'
     );
@@ -206,6 +206,8 @@
       </div>`;
   }
 
+  // kick everything off
+  loadIncludes();
   loadPopular();
   loadNewest();
   loadGoodPlace();
