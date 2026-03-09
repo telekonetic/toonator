@@ -156,7 +156,7 @@ export async function onRequestGet(context) {
 
         <div class="info">
           <div class="author">
-            <img class="avatar" src="${authorAvatar}" onerror="this.src='/img/avatar100.gif'"/>
+            <img class="avatar" id="author_avatar" src="${authorAvatar}" onerror="this.src='/img/avatar100.gif'"/>
             <div class="author_name">
               <a href="/user/${authorUsername}" class="username foreign">${authorUsername}</a>
             </div>
@@ -434,6 +434,36 @@ function handleFavorite() {
   });
 }
 
+// Re-fetch author avatar client-side via username (more reliable than server-side user_id lookup)
+async function loadAuthorAvatar() {
+  const username = ${JSON.stringify(authorUsername)};
+  if (!username || username === 'unknown') return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_user_by_username', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ p_username: username })
+    });
+    const userData = await res.json();
+    if (userData && userData.length > 0) {
+      const avatarToonId = userData[0].avatar_toon_id || userData[0].avatar_toon || null;
+      if (avatarToonId) {
+        const avatarEl = document.getElementById('author_avatar');
+        if (avatarEl) {
+          avatarEl.src = SUPABASE_URL + '/storage/v1/object/public/previews/' + avatarToonId + '_100.gif';
+        }
+      }
+    }
+  } catch (e) {
+    // keep default avatar on error
+  }
+}
+
+loadAuthorAvatar();
 loadLikes();
 loadComments();
 </script>
