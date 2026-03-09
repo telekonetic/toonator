@@ -3,6 +3,7 @@ let authMode = 'login';
 async function updateAuthUI() {
   const { data: { user } } = await db.auth.getUser();
   const menu = document.getElementById('newmenu');
+  if (!menu) return; // safety guard
 
   if (user) {
     const username = user.user_metadata?.username || user.email;
@@ -71,5 +72,3 @@ function toggleOldSignin() {
   const el = document.getElementById('signin-old');
   if (el) el.classList.toggle('hidden');
 }
-
-document.addEventListener('DOMContentLoaded', updateAuthUI);
