@@ -59,7 +59,7 @@ img {
 
 #newmenu {
     float: right;
-    margin: 0;
+    margin: 5px;
     padding: 0;
     list-style: none;
 }
@@ -422,7 +422,6 @@ a.btn:hover {
     background-color: #eeeeee;
     display: inline-block;
     zoom: 1;
-    *display: inline;
     width: 210px;
     margin: 3px;
     text-align: center;
