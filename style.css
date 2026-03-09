@@ -98,6 +98,39 @@ img {
     text-decoration: underline;
 }
 
+#newmenu #account > ul {
+    display: none;
+}
+
+#newmenu #account > a,
+#newmenu #mnumessages > a,
+#newmenu #notify > a,
+#newmenu #spiders > a {
+    width: 32px;
+    height: 32px;
+    display: block;
+}
+
+#newmenu li ul li a {
+    display: block;
+    padding: 0 8px;
+    height: 24px;
+    line-height: 24px;
+    color: #000000;
+    text-decoration: none;
+    width: 150px;
+    font: 12pt ToonatorFont;
+}
+
+#newmenu li ul li a:hover {
+    background: #eeeeee;
+}
+
+#newmenu #account {
+    margin-left: 18px;
+    max-width: 200px;
+}
+
 ul.topmenu {
     padding-top: 6px;
     padding-left: 130px;

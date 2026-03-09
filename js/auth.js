@@ -3,14 +3,45 @@ let authMode = 'login';
 async function updateAuthUI() {
   const { data: { user } } = await db.auth.getUser();
   const menu = document.getElementById('newmenu');
-  if (!menu) return; // safety guard
+  if (!menu) return;
 
   if (user) {
     const username = user.user_metadata?.username || user.email;
     menu.innerHTML = `
-      <li><a href="/user/${username}">${username}</a></li>
-      <li><a href="#" onclick="signOut(); return false;">Sign Out</a></li>
+      <li id="mnumessages">
+        <a href="/messages/">
+          <div class="override m_messages"></div>
+        </a>
+      </li>
+      <li id="notify">
+        <a href="/notifications/">
+          <div class="override m_notify"></div>
+        </a>
+      </li>
+      <li id="spiders">
+        <a href="/user/${username}/fans/">
+          <div class="override m_spiders"></div>
+        </a>
+      </li>
+      <li id="account">
+        <a href="/user/${username}">${username}</a>
+        <ul>
+          <li><a href="/user/${username}">My toons</a></li>
+          <li><a href="/settings/">Settings</a></li>
+          <li><a href="#" onclick="signOut(); return false;">Sign Out</a></li>
+        </ul>
+      </li>
     `;
+
+    // dropdown hover behavior
+    const accountLi = document.getElementById('account');
+    accountLi.addEventListener('mouseenter', () => {
+      accountLi.querySelector('ul').style.display = 'block';
+    });
+    accountLi.addEventListener('mouseleave', () => {
+      accountLi.querySelector('ul').style.display = 'none';
+    });
+
   } else {
     menu.innerHTML = `
       <li><a href="#" onclick="showAuth('join'); return false;">Join</a></li>
