@@ -63,8 +63,9 @@ export async function onRequestGet(context) {
     const userData = await rpc('get_user_by_id', { p_user_id: toon.user_id });
     if (userData && userData.length > 0) {
       authorUsername = userData[0].username || 'unknown';
-      if (userData[0].avatar_toon_id) {
-        authorAvatar = `${SUPABASE_URL}/storage/v1/object/public/previews/${userData[0].avatar_toon_id}_100.gif`;
+      const avatarToonId = userData[0].avatar_toon_id || userData[0].avatar_toon || null;
+      if (avatarToonId) {
+        authorAvatar = `${SUPABASE_URL}/storage/v1/object/public/previews/${avatarToonId}_100.gif`;
       }
     }
   }
@@ -299,9 +300,38 @@ async function loadComments() {
     return;
   }
 
+  // Collect unique usernames to look up avatars
+  const usernames = [...new Set(data.map(c => c.author_username).filter(Boolean))];
+  const avatarMap = {};
+
+  await Promise.all(usernames.map(async (uname) => {
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_user_by_username', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ p_username: uname })
+      });
+      const userData = await res.json();
+      if (userData && userData.length > 0) {
+        const avatarToonId = userData[0].avatar_toon_id || userData[0].avatar_toon || null;
+        avatarMap[uname] = avatarToonId
+          ? SUPABASE_URL + '/storage/v1/object/public/previews/' + avatarToonId + '_100.gif'
+          : '/img/avatar100.gif';
+      } else {
+        avatarMap[uname] = '/img/avatar100.gif';
+      }
+    } catch (e) {
+      avatarMap[uname] = '/img/avatar100.gif';
+    }
+  }));
+
   list.innerHTML = data.map(c => {
-    const avatar = c.author_avatar || '/img/avatar100.gif';
     const username = c.author_username || 'anonymous';
+    const avatar = avatarMap[username] || '/img/avatar100.gif';
     const date = new Date(c.created_at);
     const dateStr = date.toLocaleDateString('en-US') + ' ' + date.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
     return \`<div class="comment">
