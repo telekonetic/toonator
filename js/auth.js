@@ -9,19 +9,13 @@ async function updateAuthUI() {
     const username = user.user_metadata?.username || user.email;
     menu.innerHTML = `
       <li id="mnumessages">
-        <a href="/messages/">
-          <div class="override m_messages"></div>
-        </a>
+        <a href="/messages/"><span class="counter"></span></a>
       </li>
       <li id="notify">
-        <a href="/notifications/">
-          <div class="override m_notify"></div>
-        </a>
+        <a href="/notifications/"><span class="counter"></span></a>
       </li>
       <li id="spiders">
-        <a href="/user/${username}/fans/">
-          <div class="override m_spiders"></div>
-        </a>
+        <a href="/user/${username}/fans/"><span class="counter"></span></a>
       </li>
       <li id="account">
         <a href="/user/${username}">${username}</a>
@@ -33,7 +27,6 @@ async function updateAuthUI() {
       </li>
     `;
 
-    // dropdown hover behavior
     const accountLi = document.getElementById('account');
     accountLi.addEventListener('mouseenter', () => {
       accountLi.querySelector('ul').style.display = 'block';
