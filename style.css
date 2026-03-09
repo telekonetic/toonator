@@ -15,10 +15,10 @@ body {
     margin: 0;
 }
 
-body,html {
-    margin:0;
-    padding:0;
-    height:100%;
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 
 img {
@@ -30,43 +30,17 @@ img {
     font: 10pt Arial;
     padding-top: 5px;
 }
+
 #header {
     height: 40px;
-    margin: 0 auto 0 auto;
+    margin: 0 auto;
     padding-bottom: 5px;
     width: 1000px;
     border-bottom: 1px solid #cccccc;
 }
+
 #header a.logo {
-    float:left;
-}
-#header a {
-    color: black;
-    text-decoration: none;
-}
-#header a:hover {
-    text-decoration: underline;
-    color: #0000ff;
-}
-
-#newmenu {
-    float: right;
-    margin: 0;
-    padding: 0;
-    list-style:none;
-}
-
-#newmenu li {
     float: left;
-    height: 32px;
-    line-height: 32px;
-    display: block;
-    margin-left: 6px;
-    position: relative;
-}
-
-#newmenu > li {
-    font: 13pt ToonatorFont;
 }
 
 #header a {
@@ -79,29 +53,17 @@ img {
     color: #0000ff;
 }
 
-ul.topmenu {
-    padding-top: 6px;
-    padding-left: 130px;
-}
-
-ul.topmenu li {
-    list-style: none;
-    float:left;
-    margin: 0 1px;
-}
-
-ul.topmenu li a {
-    padding: 5px 0px;
-    font-weight: bold;
-    display: block;
+#header a.username {
+    color: #005500;
 }
 
 #newmenu {
     float: right;
     margin: 0;
     padding: 0;
-    list-style:none;
+    list-style: none;
 }
+
 #newmenu li {
     float: left;
     height: 32px;
@@ -136,44 +98,64 @@ ul.topmenu li a {
     text-decoration: underline;
 }
 
+ul.topmenu {
+    padding-top: 6px;
+    padding-left: 130px;
+}
+
+ul.topmenu li {
+    list-style: none;
+    float: left;
+    margin: 0 1px;
+}
+
+ul.topmenu li a {
+    padding: 5px 0;
+    font-weight: bold;
+    display: block;
+}
+
 #content_wrap {
     margin-top: 5px;
     font: 10pt Arial;
 }
+
 #content {
-    margin: 0 auto 0 auto;
+    margin: 0 auto;
     padding-bottom: 5px;
     width: 1000px;
     border-bottom: 1px solid #cccccc;
 }
+
 #footer {
-    margin: 0 auto 0 auto;
+    margin: 0 auto;
     padding: 0 2px;
     width: 1000px;
-    text-align:center;
-    font-size:8pt;
-    color:#888888;
-}
-#footer a {
-    color:#888888;
-    text-decoration:none;
-}
-#footer a:hover {
-    color:black;
-    text-decoration:underline;
+    text-align: center;
+    font-size: 8pt;
+    color: #888888;
 }
 
-/* User profile layout */
+#footer a {
+    color: #888888;
+    text-decoration: none;
+}
+
+#footer a:hover {
+    color: black;
+    text-decoration: underline;
+}
+
 .content_left {
     width: 680px;
     float: left;
 }
+
 .content_right {
     width: 320px;
     float: left;
 }
 
-/* Typography */
 h1 {
     display: block;
     font-size: 18px;
@@ -181,50 +163,54 @@ h1 {
     font-weight: bold;
     text-align: center;
 }
+
 h3 {
     font-size: 24px;
     font-family: ToonatorFont, Arial;
     font-weight: normal;
 }
 
-/* Username link colors */
 a.username {
     color: #005500 !important;
     font-weight: bold;
     text-decoration: none;
 }
+
 a.username:hover {
     text-decoration: underline;
 }
+
 a.foreign {
     color: #3333cc !important;
 }
 
-/* Tab links */
 a.nmenu {
     color: #0000ff;
     text-decoration: none;
 }
+
 a.nmenu:hover {
     color: #0000ff;
     text-decoration: underline;
 }
+
 a.nmenu.selected {
     color: #000000;
     font-weight: bold;
 }
 
-/* Toon cards */
 .toons_container {
     display: block;
     text-align: center;
     padding: 10px 0;
 }
+
 .toons_list {
     margin: 0 auto;
     width: 660px;
     text-align: left;
 }
+
 .toon_preview {
     background-color: #eeeeee;
     display: inline-block;
@@ -235,6 +221,7 @@ a.nmenu.selected {
     border-radius: 6px;
     position: relative;
 }
+
 .toon_preview img,
 .toon_preview canvas {
     margin-bottom: 5px;
@@ -244,6 +231,7 @@ a.nmenu.selected {
     margin-left: auto;
     margin-right: auto;
 }
+
 .toon_preview .toon_name a {
     display: block;
     font-size: 12px;
@@ -251,27 +239,31 @@ a.nmenu.selected {
     color: #555555;
     text-decoration: none;
 }
+
 .toon_preview a.link {
     display: inline-block;
     overflow: hidden;
     height: 16px;
 }
+
 .toon_tagline {
     font-size: 8pt;
     height: 18px;
 }
+
 .grayb {
     color: #888888;
 }
 
-/* Paginator */
 div.paginator {
     text-align: center;
 }
+
 div.paginator ul {
     padding: 0;
     margin: 0;
 }
+
 div.paginator ul li {
     list-style: none;
     margin: 1px 5px;
@@ -281,6 +273,7 @@ div.paginator ul li {
     text-align: center;
     display: inline-block;
 }
+
 div.paginator ul li a {
     text-decoration: none;
     color: #555555;
@@ -288,15 +281,18 @@ div.paginator ul li a {
     padding: 5px 0 2px 0;
     display: inline-block;
 }
+
 div.paginator ul li a:hover,
 div.paginator ul li.current a {
     border-radius: 5px;
     color: black;
     background: #eeeeee;
 }
+
 div.paginator ul li.current a {
     border: 1px solid #888888;
 }
+
 div.paginator ul li.dots {
     color: #888888;
 }
@@ -306,100 +302,120 @@ img.p100 {
     height: 100px;
     border: 1px solid #cccccc;
 }
+
 .center {
     text-align: center;
 }
 
-/* ---- Toon Page ---- */
 #toon_page h2 {
     font-family: ToonatorFont, "Comic Sans MS";
     clear: both;
 }
+
 #toon_page h2 a {
     color: #555555;
     text-decoration: none;
 }
+
 #toon_page h2 a:hover {
     color: #0000ff;
     text-decoration: underline;
 }
+
 #toon_page .left_panel {
     float: left;
     width: 610px;
 }
+
 .player {
     width: 610px;
     height: 350px;
     float: left;
 }
+
 #toon_page .info {
     margin-left: 20px;
     width: 350px;
     float: right;
 }
+
 #toon_page .info .author {
     height: 44px;
 }
+
 #toon_page .info .author .avatar {
     float: left;
     margin-right: 10px;
 }
+
 #toon_page .info .author .author_name {
     font-family: ToonatorFont, "Comic Sans MS";
     font-size: 18pt;
 }
+
 #toon_page .info .author .date {
     font-size: 8pt;
 }
+
 #toon_page .info .description {
     clear: both;
     margin: 5px 0;
     font-size: 11pt;
     word-wrap: break-word;
 }
+
 #toon_page .info .buttons {
     clear: both;
     margin-top: 10px;
     font-family: ToonatorFont, "Comic Sans MS";
     font-size: 12pt;
 }
+
 #toon_page .info .buttons .hover {
     line-height: 30px;
     height: 30px;
     vertical-align: middle;
 }
+
 #toon_page .info .buttons a {
     text-decoration: none;
     color: #555555;
 }
+
 #toon_page .info .buttons img {
     vertical-align: middle;
 }
+
 #toon_page .info .buttons a:hover,
 #toon_page .info .buttons a.active {
     color: black;
 }
+
 #toon_page .info .prizes {
     margin-top: 10px;
 }
+
 #toon_page .info .share {
     margin-top: 10px;
 }
+
 #toon_page .info .tcontinues {
     clear: both;
     margin-top: 10px;
 }
+
 .line_5 {
     margin: 10px 0;
 }
+
 .line_5 img {
     display: none;
 }
 
-/* Comments */
 .toon_comments {
     display: block;
 }
+
 .toon_comments .header {
     border-bottom: 1px solid #cccccc;
     display: block;
@@ -407,37 +423,45 @@ img.p100 {
     font-size: 12pt;
     padding: 3px 0;
 }
+
 .toon_comments a.new {
     float: right;
     text-decoration: none;
     color: blue;
 }
+
 .toon_comments a.new:hover {
     text-decoration: underline;
 }
+
 .comment {
     display: block;
     padding: 5px;
     min-height: 40px;
     border-bottom: 1px solid #eeeeee;
 }
+
 .comment .avatar {
     float: left;
     margin-right: 5px;
 }
+
 img.avatar {
     width: 80px;
     height: 40px;
     border: 1px solid #eeeeee;
     border-radius: 5px;
 }
+
 .comment .head {
     margin-bottom: 3px;
 }
+
 .comment .date {
     float: right;
     font-size: 8pt;
 }
+
 .comment .text {
     vertical-align: middle;
     text-align: justify;
@@ -446,18 +470,19 @@ img.avatar {
     padding-left: 85px;
 }
 
-/* Share icons */
 ul.share {
     font-family: ToonatorFont;
     font-size: 14px;
     padding: 0;
     list-style: none;
 }
+
 ul.share li {
     float: left;
     margin: 0 1px;
     line-height: 20px;
 }
+
 .shr_tw, .shr_reddit, .shr_fb, .shr_gplus {
     width: 20px;
     height: 20px;
@@ -466,18 +491,17 @@ ul.share li {
     border-radius: 3px;
 }
 
-/* Draft badge */
 .draft {
     background: #333333;
     color: white;
 }
+
 .draft .toon_name a,
 .draft .toon_tagline,
 .draft .toon_tagline a {
     color: white;
 }
 
-/* Owned highlight */
 .owned {
     background-image: url(/img/owned2.gif);
     background-repeat: repeat-x;
@@ -487,10 +511,12 @@ ul.share li {
     color: black;
     font-weight: bold;
 }
+
 .red {
     color: red !important;
     font-weight: bold;
 }
+
 .clear {
     clear: both;
 }
@@ -511,7 +537,8 @@ ul.share li {
     border-bottom: 1px solid #eeeeee;
 }
 
-.sn label, .sn .label {
+.sn label,
+.sn .label {
     display: block;
     margin: 5px 0;
     font: 16pt ToonatorFont;
