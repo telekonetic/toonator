@@ -117,11 +117,9 @@ function render() {
 // falls back to straight lines for very short strokes (mirrors ActionScript logic)
 function drawFrameStrokes(targetCtx, strokes) {
   strokes.forEach(stroke => {
-    // NEW: Use destination-out for eraser strokes
+    // Only change composite operation for eraser
     if (stroke.eraser) {
       targetCtx.globalCompositeOperation = 'destination-out';
-    } else {
-      targetCtx.globalCompositeOperation = 'source-over';
     }
 
     targetCtx.beginPath();
@@ -136,7 +134,6 @@ function drawFrameStrokes(targetCtx, strokes) {
       if (settings.smoothing) {
         drawMulticurve(targetCtx, stroke.points, false);
       } else {
-        // raw polyline when smoothing is off
         stroke.points.forEach((p, i) => {
           const x = p.x * renderScale, y = p.y * renderScale;
           if (i === 0) targetCtx.moveTo(x, y);
@@ -145,9 +142,12 @@ function drawFrameStrokes(targetCtx, strokes) {
       }
       targetCtx.stroke();
     }
+    
+    // Reset only if we changed it
+    if (stroke.eraser) {
+      targetCtx.globalCompositeOperation = 'source-over';
+    }
   });
-  // Reset composite operation
-  targetCtx.globalCompositeOperation = 'source-over';
 }
 
 
