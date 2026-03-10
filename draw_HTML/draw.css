@@ -1,3 +1,254 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#editor {
+  width: 600px;
+  margin: 0;
+  padding: 0;
+}
+
+canvas {
+  display: block;
+}
+
+#bottomBar {
+  width: 600px;
+  height: 90px;
+  background: #cccccc;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* timeline strip (top row) */
+
+#timeline {
+  height: 24px;
+  width: 516px;
+  margin: 3px 3px;
+  display: flex;
+  background: #fff;
+  position: absolute;
+  right: 0;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+#timeline::-webkit-scrollbar {
+  display: none;
+}
+
+#framesSlider {
+  position: absolute;
+  width: 515.5px;
+  height: 27px;
+  right: 3px;  /* match timeline's right: 0 + margin */
+  top: 29.95px;
+}
+
+#scrollPrev {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 18px;
+  height: 25.25px;
+  cursor: pointer;
+  background: url('./graphics/buttonleft.svg') no-repeat center center;
+  background-size: 100% 100%;
+}
+
+#scrollNext {
+  position: absolute;
+  right: 0px;
+  top: 0.7px;
+  width: 22px;
+  height: 23.3px;
+  cursor: pointer;
+  background: url('./graphics/buttonright.svg') no-repeat center center;
+  background-size: 100% 100%;
+}
+
+#scrollBar {
+  position: absolute;
+  left: 16.5px;
+  top: 0px;
+  width: 479px;
+  height: 27px;
+}
+
+
+#scrollSlider {
+  position: absolute;
+  top: 0;
+  width: 46.9px;
+  height: 24.5px;
+  background: url('./graphics/scrollBar.svg') no-repeat center center;
+  background-size: 100% 100%;
+  cursor: pointer;
+}
+
+
+
+/* frame numbers */
+
+.frameBox {
+  width: 49px;
+  height: 24px;
+  border: none;              /* no border by default */
+  text-align: center;
+  font-size: 11px;
+  color: red;
+  cursor: pointer;
+  line-height: 24px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+/* previous frame */
+
+.frameBox.prev {
+  border: 1px solid #555555;
+}
+
+/* current frame */
+
+.frameBox.active {
+  border: 1px solid red;
+}
+
+/* toolbar row */
+
+#toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 600px;
+  height: 90px;
+}
+
+#toolbar {
+  pointer-events: none;
+}
+
+#btnAdd, #btnDelete, #btnPlay, #btnPause, #btnSave, #btnPencil, #btnEraser {
+  pointer-events: auto;
+}
+
+#btnEyedropper { 
+  position: absolute; 
+  width: 24px; 
+  height: 24px; 
+  left: 77px; 
+  top: 62px; 
+  cursor: crosshair; 
+  background: url('./graphics/eyedropper.svg') no-repeat center center; 
+  background-size: 100% 100%;
+  pointer-events: auto;
+}
+
+.btnActive {
+  filter: invert(10%) sepia(100%) saturate(5000%) hue-rotate(210deg) brightness(80%);
+}
+
+#btnAdd    { position: absolute; width: 24px; height: 24px; left: 11px;   top: 3px;    cursor: pointer; background: url('./graphics/addFrame.svg') no-repeat center center; background-size: 100% 100%; }
+#btnDelete { position: absolute; width: 24px; height: 24px; left: 45px;   top: 3px;    cursor: pointer; background: url('./graphics/removeFrame.svg') no-repeat center center; background-size: 100% 100%; }
+#btnPlay   { position: absolute; width: 24px; height: 24px; left: 15.5px; top: 34px;   cursor: pointer; background: url('./graphics/play.svg') no-repeat center center; background-size: 100% 100%; }
+#btnPause  { position: absolute; width: 24px; height: 24px; left: 15.5px; top: 34px;   cursor: pointer; background: url('./graphics/pause.svg') no-repeat center center; background-size: 100% 100%; display: none; }
+#btnSave   { position: absolute; width: 24px; height: 24px; left: 47.5px; top: 34.5px; cursor: pointer; background: url('./graphics/save.svg') no-repeat center center; background-size: 100% 100%; }
+#btnPencil { position: absolute; width: 24px; height: 24px; left: 16.5px; top: 62.5px; cursor: pointer; background: url('./graphics/pencil.svg') no-repeat center center; background-size: 100% 100%; }
+#btnEraser { position: absolute; width: 24px; height: 24px; left: 47.5px; top: 62px;   cursor: pointer; background: url('./graphics/eraser.svg') no-repeat center center; background-size: 100% 100%; }
+#btnSize1, #btnSize2, #btnSize3, #btnSize4, #btnSize5 {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: 62px;
+  cursor: pointer;
+  pointer-events: auto;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+#btnSize1 { left: 123px; background-image: url('./graphics/size1.svg'); }
+#btnSize2 { left: 151px; background-image: url('./graphics/size2.svg'); }
+#btnSize3 { left: 179px; background-image: url('./graphics/size3.svg'); }
+#btnSize4 { left: 207px; background-image: url('./graphics/size4.svg'); }
+#btnSize5 { left: 235px; background-image: url('./graphics/size5.svg'); }
+
+.btnSizeActive {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+#btnColorBlack, #btnColorRed, #btnColorCustom {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: 62px;
+  cursor: pointer;
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+#btnColorBlack, #btnColorRed {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: 62px;
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#btnColorBlack { left: 293px; }
+#btnColorRed   { left: 321px; }
+
+.colorInner {
+  width: 16px;  /* 24 / 1.5 */
+  height: 16px;
+  pointer-events: none;
+}
+#btnColorCustom { left: 349.3px; background: #ffffff; }
+
+#btnColorCustom {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#btnColorCustom.enabled {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#colorPalette {
+  position: absolute;
+  display: none;
+  left: 349.3px;
+  bottom: 30px;
+  background: white;
+  border: 1px solid #888;
+  padding: 4px;
+  z-index: 100;
+  pointer-events: auto;
+}
+#colorPalette input[type="text"] {
+  width: 80px;
+  margin-bottom: 4px;
+  display: block;
+  font-size: 11px;
+}
+#colorPaletteGrid {
+  display: grid;
+  grid-template-columns: repeat(18, 12px);
+  gap: 1px;
+}
+.colorSwatch {
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
+}
+
 /* =====================================================
    SETTINGS BUTTON
    (append this to draw.css)
