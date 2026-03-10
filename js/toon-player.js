@@ -162,34 +162,6 @@
     }
   }
 
-  // Expand button — port of SizeButton EXPAND (20×20)
-  // Two L-shapes with sketchy arrowheads, drawn in dark colour
-  function paintExpandIcon(ctx, x, y) {
-    ctx.save();
-    ctx.strokeStyle = '#777'; ctx.lineWidth = 2; ctx.lineCap = 'round';
-    // Top-right bracket
-    ctx.beginPath(); ctx.moveTo(x+12+rand(1), y+rand(1)); ctx.lineTo(x+19+rand(1), y+rand(1)); ctx.lineTo(x+19+rand(1), y+8+rand(1)); ctx.stroke();
-    // Bottom-left bracket
-    ctx.beginPath(); ctx.moveTo(x+rand(1), y+12+rand(1)); ctx.lineTo(x+rand(1), y+19+rand(1)); ctx.lineTo(x+8+rand(1), y+19+rand(1)); ctx.stroke();
-    ctx.restore();
-  }
-
-  // Fullscreen button — port of SizeButton FULLSCREEN (20×20)
-  // Corner brackets at all four corners
-  function paintFullscreenIcon(ctx, x, y) {
-    ctx.save();
-    ctx.strokeStyle = '#777'; ctx.lineWidth = 2; ctx.lineCap = 'round';
-    // Top-left
-    ctx.beginPath(); ctx.moveTo(x+rand(1), y+8+rand(1)); ctx.lineTo(x+rand(1), y+rand(1)); ctx.lineTo(x+8+rand(1), y+rand(1)); ctx.stroke();
-    // Top-right
-    ctx.beginPath(); ctx.moveTo(x+12+rand(1), y+rand(1)); ctx.lineTo(x+20+rand(1), y+rand(1)); ctx.lineTo(x+20+rand(1), y+8+rand(1)); ctx.stroke();
-    // Bottom-left
-    ctx.beginPath(); ctx.moveTo(x+rand(1), y+12+rand(1)); ctx.lineTo(x+rand(1), y+20+rand(1)); ctx.lineTo(x+8+rand(1), y+20+rand(1)); ctx.stroke();
-    // Bottom-right
-    ctx.beginPath(); ctx.moveTo(x+12+rand(1), y+20+rand(1)); ctx.lineTo(x+20+rand(1), y+20+rand(1)); ctx.lineTo(x+20+rand(1), y+12+rand(1)); ctx.stroke();
-    ctx.restore();
-  }
-
   /* =====================================================
      PLAYER FACTORY
   ===================================================== */
@@ -211,35 +183,24 @@
     const totalSteps = oneFrame ? (frames[0].strokes || []).length : frameCount;
     const showBar    = totalSteps >= 10;  // AS3: hide bar if total < 10
 
-    /* ---- Toolbar layout — mirrors Toolbar.realign() exactly ----
-       placeRect starts as Rectangle(0, 0, 610, 40)
-       RIGHT items (consume from right edge):
-         logo:        width≈60, margin 5  → right edge moves left by 65
-         fullscreen:  width=20, margin 10 → right edge moves left by 30
-         expand:      width=20, margin 10 → right edge moves left by 30
-       LEFT items:
-         button:      width=30, margin 5  → left edge moves right by 35
-       Remaining placeRect is the bar zone.
+    /* ---- Toolbar layout ----
+       RIGHT: logo (width≈62, margin 5)
+       LEFT:  play/pause button (width=30, margin 5)
+       Remaining centre → scrub bar + slider at y=20
     ---- */
-    const LOGO_W  = 62;  // approximate rendered width of "Toonator" logo text
-    const SZ_BTN  = 20;  // SizeButton is 20×20
+    const LOGO_W  = 62;
 
-    // Right side x positions (right-to-left placement)
-    const LOGO_X  = TB_W - LOGO_W - 5;                    // rightmost
-    const FS_X    = LOGO_X - SZ_BTN - 10;                 // fullscreen left of logo
-    const EXP_X   = FS_X  - SZ_BTN - 10;                  // expand left of fullscreen
+    // Right side
+    const LOGO_X  = TB_W - LOGO_W - 8;
 
     // Left side
-    const BTN_X   = 5;   // button margin=5
+    const BTN_X   = 5;
     const BTN_W   = 30;
 
-    // Bar zone: placeRect after left+right consumption
-    const placeLeft  = BTN_X + BTN_W + 5;   // 5(margin) + 30(btn) + 5 = 40
-    const placeRight = EXP_X - 10;          // expand x - its margin
-    // bar.x = placeRect.x + 10, barWidth = placeRect.width - 20
-    const BAR_X    = placeLeft + 10;
-    const BAR_W    = Math.max(10, (placeRight - placeLeft) - 20);
-    const BAR_Y    = 20;  // AS3: slider.y = 20, bar drawn at y=20
+    // Bar fills the space between button and logo
+    const BAR_X   = BTN_X + BTN_W + 14;
+    const BAR_W   = Math.max(10, LOGO_X - BAR_X - 10);
+    const BAR_Y   = 20;
 
     /* ---- DOM ---- */
     root.innerHTML = '';
@@ -314,19 +275,6 @@
         paintSlider(tbCtx, BAR_X + sliderRatio * BAR_W, BAR_Y);
       }
 
-      // Frame / stroke counter — just right of bar
-      const step  = oneFrame ? Math.max(0, lastShownStroke) : curFrame;
-      const label = (step + 1) + ' / ' + totalSteps + (oneFrame ? ' strokes' : '');
-      tbCtx.fillStyle    = '#999';
-      tbCtx.font         = '10px Tahoma, sans-serif';
-      tbCtx.textAlign    = 'left';
-      tbCtx.textBaseline = 'middle';
-      tbCtx.fillText(label, BAR_X + BAR_W + 6, BAR_Y);
-
-      // Right icons
-      paintExpandIcon(tbCtx,     EXP_X, TB_H/2 - 10);
-      paintFullscreenIcon(tbCtx, FS_X,  TB_H/2 - 10);
-
       // Logo — /img/toonator.svg (155×22 native, scaled to fit toolbar)
       if (logoImg.complete && logoImg.naturalWidth > 0)
         tbCtx.drawImage(logoImg, LOGO_X, Math.round(TB_H/2 - 11), 62, 22);
@@ -397,11 +345,6 @@
         if (playing) stopPlay(); else startPlay();
       } else if (showBar && mx >= BAR_X && mx <= BAR_X + BAR_W) {
         stopPlay(); seekToRatio(mouseRatioOnBar(e));
-      } else if (mx >= EXP_X && mx < EXP_X + SZ_BTN) {
-        // expand — no-op in web embed
-      } else if (mx >= FS_X && mx < FS_X + SZ_BTN) {
-        if (!document.fullscreenElement) root.requestFullscreen && root.requestFullscreen();
-        else document.exitFullscreen && document.exitFullscreen();
       }
     });
 
