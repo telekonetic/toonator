@@ -4,9 +4,9 @@
      - Multicurve quadratic Bézier stroke rendering
      - Oldschool brush polygon rendering
      - oneFrame stroke-by-stroke reveal mode
-     - Sketchy/hand-drawn toolbar (wobbly bar, jitter
-       slider, sketchy play/pause button) matching AS3
-     - Bar hidden when total < 10 (matching AS3 rule)
+     - Sketchy/hand-drawn toolbar on black background
+     - Toolbar jitter repaints at 100ms (10fps) like AS3
+     - Bar hidden when totalSteps < 10 (matches AS3 rule)
      - FPS from saved settings, default 10
 ===================================================== */
 
@@ -18,9 +18,9 @@
   ===================================================== */
   function drawMulticurve(ctx, points, scale, closed) {
     if (!points || points.length === 0) return;
-    const s = scale || 1;
+    const s  = scale || 1;
     const sc = points.map(p => ({ x: p.x * s, y: p.y * s }));
-    const n = sc.length;
+    const n  = sc.length;
     if (n === 1) {
       ctx.arc(sc[0].x, sc[0].y, Math.max(ctx.lineWidth / 2, 1), 0, Math.PI * 2);
       return;
@@ -41,7 +41,7 @@
       mx[n - 1] = 0.5 * (sc[n - 1].x + sc[n - 2].x);
       my[n - 1] = 0.5 * (sc[n - 1].y + sc[n - 2].y);
     } else {
-      mx[0]     = sc[0].x; my[0]     = sc[0].y;
+      mx[0]     = sc[0].x;  my[0]     = sc[0].y;
       mx[n - 2] = sc[n - 1].x; my[n - 2] = sc[n - 1].y;
     }
     ctx.moveTo(mx[0], my[0]);
@@ -61,22 +61,20 @@
     const s = scale || 1;
     if (!stroke.points || stroke.points.length === 0) return;
 
-    // Oldschool brush — pre-built filled polygon
     if (stroke.oldschool && stroke.polygon && stroke.polygon.length > 0) {
       ctx.beginPath();
       stroke.polygon.forEach((p, i) => {
         i === 0 ? ctx.moveTo(p.x * s, p.y * s) : ctx.lineTo(p.x * s, p.y * s);
       });
       ctx.closePath();
-      ctx.fillStyle = stroke.color || '#000000';
+      ctx.fillStyle = stroke.color || '#000';
       ctx.fill();
       return;
     }
 
-    const color = stroke.color || '#000000';
+    const color = stroke.color || '#000';
     const size  = (stroke.size || 2) * s;
 
-    // Single dot
     if (stroke.points.length === 1) {
       ctx.beginPath();
       ctx.arc(stroke.points[0].x * s, stroke.points[0].y * s, size / 2, 0, Math.PI * 2);
@@ -96,7 +94,7 @@
 
   /* =====================================================
      FRAME RENDERER
-     strokeLimit -1 = all strokes; N = strokes 0..N
+     strokeLimit -1 = all; N = draw strokes 0..N
   ===================================================== */
   function drawFrame(ctx, frame, scale, strokeLimit) {
     if (!frame || !frame.strokes) return;
@@ -107,21 +105,22 @@
   }
 
   /* =====================================================
-     SKETCHY TOOLBAR — Canvas-based, matching AS3 aesthetic
-     All elements repaint with Math.random() jitter every
-     animation frame, exactly like the Flash originals.
+     SKETCHY TOOLBAR PAINTERS
+     All use Math.random() per call — repainted at 100ms
+     to give the living-sketch jitter of the AS3 original.
   ===================================================== */
 
-  function r(n) { return Math.random() * n; }   // shorthand
+  const r = n => Math.random() * n;
 
-  // Wobbly bar — mirrors ToolbarToon.repaintBar()
-  // A filled polygon with randomly jittered top edge
-  function paintBar(ctx, x, y, w, h) {
+  // Wobbly bar strip — mirrors ToolbarToon.repaintBar()
+  // Drawn in dark grey so it's visible on black bg
+  function paintBar(ctx, x, y, w) {
+    const h = 4;
     ctx.save();
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = '#555';
     ctx.beginPath();
     ctx.moveTo(x, y + h);
-    const steps = Math.floor(w / 30);
+    const steps = Math.max(2, Math.floor(w / 30));
     for (let i = 1; i < steps; i++) {
       ctx.lineTo(x + i * 30 + r(10) - 5, y + h - r(2));
     }
@@ -134,67 +133,55 @@
     ctx.restore();
   }
 
-  // Slider knob — mirrors ToolbarToon.repaintSlider()
-  // Two concentric wobbly circles: black outer, white inner
+  // Wobbly slider knob — mirrors ToolbarToon.repaintSlider()
+  // Black outer ring, white inner fill
   function paintSlider(ctx, cx, cy) {
     ctx.save();
-    // Outer black circle (~8px radius, jittered)
     ctx.fillStyle = '#000';
     ctx.beginPath();
     for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) {
-      const rx = Math.cos(a) * (8 + r(1));
-      const ry = Math.sin(a) * (8 + r(1));
-      a === 0 ? ctx.moveTo(cx + rx, cy + ry) : ctx.lineTo(cx + rx, cy + ry);
+      const px = cx + Math.cos(a) * (8 + r(1));
+      const py = cy + Math.sin(a) * (8 + r(1));
+      a === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
     }
     ctx.closePath();
     ctx.fill();
-    // Inner white circle (~6px radius, jittered)
     ctx.fillStyle = '#fff';
     ctx.beginPath();
     for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
-      const rx = Math.cos(a) * (6 + r(1));
-      const ry = Math.sin(a) * (6 + r(1));
-      a === 0 ? ctx.moveTo(cx + rx, cy + ry) : ctx.lineTo(cx + rx, cy + ry);
+      const px = cx + Math.cos(a) * (6 + r(1));
+      const py = cy + Math.sin(a) * (6 + r(1));
+      a === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
     }
     ctx.closePath();
     ctx.fill();
     ctx.restore();
   }
 
-  // Play button — mirrors Button.repaint() mode=0
-  // Two sketchy pause bars (mode=0 = PLAYING, shows pause icon)
-  function paintPause(ctx, x, y) {
+  // Pause icon (two wobbly rects) — mirrors Button.repaint() mode=0
+  function paintPauseIcon(ctx, x, y) {
     ctx.save();
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = '#fff';
     for (let i = 0; i < 2; i++) {
       ctx.beginPath();
       ctx.moveTo(x + 5 + i * 10 + r(2) - 1, y + 5);
-      for (let j = 1; j < 3; j++) {
-        ctx.lineTo(x + 4 - r(2) + i * 10, y + 5 + j * 6.6);
-      }
+      for (let j = 1; j < 3; j++) ctx.lineTo(x + 4 - r(2) + i * 10, y + 5 + j * 6.6);
       ctx.lineTo(x + 6 + i * 10 + r(2) - 1, y + 25);
-      for (let j = 2; j > 0; j--) {
-        ctx.lineTo(x + 6 + r(2) + i * 10, y + 5 + j * 6.6);
-      }
+      for (let j = 2; j > 0; j--) ctx.lineTo(x + 6 + r(2) + i * 10, y + 5 + j * 6.6);
       ctx.closePath();
       ctx.fill();
     }
     ctx.restore();
   }
 
-  // Pause button — mirrors Button.repaint() mode=1
-  // A sketchy play triangle
-  function paintPlay(ctx, x, y) {
+  // Play icon (sketchy triangle) — mirrors Button.repaint() mode=1
+  function paintPlayIcon(ctx, x, y) {
     ctx.save();
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = '#fff';
     ctx.beginPath();
     ctx.moveTo(x + 5 + r(1), y + 5 + r(1));
-    for (let i = 1; i < 4; i++) {
-      ctx.lineTo(x + 5 + i * 5 + r(1), y + 5 + i * 2.5 + r(1));
-    }
-    for (let i = 2; i >= 0; i--) {
-      ctx.lineTo(x + 5 + i * 5 + r(2), y + 5 + (6 - i) * 3 + r(1));
-    }
+    for (let i = 1; i < 4; i++) ctx.lineTo(x + 5 + i * 5 + r(1), y + 5 + i * 2.5 + r(1));
+    for (let i = 2; i >= 0; i--) ctx.lineTo(x + 5 + i * 5 + r(2), y + 5 + (6 - i) * 3 + r(1));
     ctx.closePath();
     ctx.fill();
     ctx.restore();
@@ -208,60 +195,69 @@
     if (!root) { console.error('toon-player: root not found:', rootId); return; }
 
     const cfg        = savedSettings || {};
-    const fps        = cfg.playFPS || 10;           // mirrors Toon._frameRate default
-    const frameDelay = Math.round(1000 / fps);
+    const fps        = cfg.playFPS || 10;
+    const frameDelay = Math.round(1000 / fps);  // e.g. 100ms at 10fps
 
-    const W = 600, H = 300;                          // mirrors AS3 _movieWidth/_movieHeight
-    const frameCount  = frames.length || 1;
-    const oneFrame    = frameCount === 1;            // mirrors AS3 oneFrame logic
-    const totalSteps  = oneFrame
+    const W = 600, H = 300;
+    const TB_H = 40;
+
+    const frameCount = frames.length || 1;
+    const oneFrame   = frameCount === 1;   // mirrors AS3 oneFrame mode
+    const totalSteps = oneFrame
       ? (frames[0].strokes || []).length
       : frameCount;
-    const showBar     = totalSteps >= 10;            // mirrors AS3: hidden if total < 10
+    const showBar = totalSteps >= 10;      // mirrors AS3: hidden if total < 10
 
-    /* ---- Toolbar canvas dimensions ---- */
-    const TB_H     = 40;   // mirrors AS3 toolbar height
-    const BTN_W    = 30;   // play/pause button area
-    const BTN_PAD  = 5;
-    const BAR_PAD  = 10;   // mirrors AS3 bar.x = placeRect.x + 10
+    /* ---- Layout constants (all in canvas px) ---- */
+    const BTN_AREA = 36;   // width reserved for play/pause button
+    const BAR_L    = BTN_AREA + 8;          // bar left edge
+    const BAR_R    = W - 70;                // bar right edge (leave room for counter)
+    const BAR_W    = BAR_R - BAR_L;
+    const BAR_Y    = TB_H / 2;              // vertical centre of bar
 
-    /* ---- DOM ---- */
+    /* ---- DOM: two stacked canvases, no overlap ---- */
     root.innerHTML = '';
-    root.style.cssText = 'display:inline-block;line-height:0;';
+    root.style.cssText = 'display:inline-block;line-height:0;font-size:0;';
 
     // Toon canvas
     const toonCanvas = document.createElement('canvas');
     toonCanvas.width  = W;
     toonCanvas.height = H;
-    toonCanvas.style.cssText = 'display:block;width:100%;max-width:' + W + 'px;background:#fff;cursor:pointer;';
-    root.appendChild(toonCanvas);
+    toonCanvas.style.cssText = [
+      'display:block',
+      'width:100%',
+      'max-width:' + W + 'px',
+      'background:#fff',
+      'cursor:pointer',
+    ].join(';');
 
-    // Toolbar canvas — same width as toon canvas, 40px tall
+    // Toolbar canvas — same CSS width as toon canvas so they align
     const tbCanvas = document.createElement('canvas');
     tbCanvas.width  = W;
     tbCanvas.height = TB_H;
-    tbCanvas.style.cssText = 'display:block;width:100%;max-width:' + W + 'px;cursor:pointer;background:#fff;';
+    tbCanvas.style.cssText = [
+      'display:block',
+      'width:100%',
+      'max-width:' + W + 'px',
+      'background:#000',   // black background matching AS3 screenshot
+      'cursor:default',
+    ].join(';');
+
+    root.appendChild(toonCanvas);
     root.appendChild(tbCanvas);
 
-    const tCtx = toonCanvas.getContext('2d');
+    const tCtx  = toonCanvas.getContext('2d');
     const tbCtx = tbCanvas.getContext('2d');
 
-    /* ---- State ---- */
+    /* ---- Playback state ---- */
     let curFrame        = 0;
     let lastShownStroke = -1;  // mirrors AS3 lastShownAction
     let playing         = false;
     let animTimer       = null;
-    let isOver          = false; // mouse over toolbar
     let sliderDragging  = false;
-    let sliderPos       = 0;    // 0..1
+    let sliderRatio     = 0;   // 0..1 position along bar
 
-    /* ---- Toolbar layout ---- */
-    // barX/barW: the scrub bar zone (mirrors AS3 bar.x = placeRect.x + 10)
-    const btnX  = BTN_PAD;
-    const barX  = BTN_W + BTN_PAD * 2 + BAR_PAD;
-    let   barW  = W - barX - BAR_PAD;   // shrinks if sound/expand buttons present
-
-    /* ---- Render toon ---- */
+    /* ---- Toon render ---- */
     function renderToon() {
       tCtx.clearRect(0, 0, W, H);
       if (oneFrame) {
@@ -271,72 +267,57 @@
       }
     }
 
-    /* ---- Render toolbar ---- */
+    /* ---- Toolbar render — called every 100ms for jitter ---- */
     function renderToolbar() {
+      // Clear to black
       tbCtx.clearRect(0, 0, W, TB_H);
-
-      // White background (mirrors AS3 white rect behind toolbar)
-      tbCtx.fillStyle = '#fff';
+      tbCtx.fillStyle = '#000';
       tbCtx.fillRect(0, 0, W, TB_H);
 
-      const cy = TB_H / 2;  // vertical centre
-
-      // Play/Pause button (30x30, centred vertically)
-      const btnY = cy - 15;
+      // Play / Pause button (30x30 area, vertically centred)
+      const btnY = TB_H / 2 - 15;
       if (playing) {
-        // Showing pause icon (user can click to pause)
-        paintPause(tbCtx, btnX, btnY);
+        paintPauseIcon(tbCtx, 4, btnY);
       } else {
-        // Showing play icon
-        paintPlay(tbCtx, btnX, btnY);
+        paintPlayIcon(tbCtx, 4, btnY);
       }
 
-      // Scrub bar + slider — hidden if totalSteps < 10 (mirrors AS3)
+      // Bar + slider — only if totalSteps >= 10
       if (showBar) {
-        const barY = cy;  // vertical centre of bar strip
-
-        // Bar background (wobbly black strip, 4px tall centred)
-        paintBar(tbCtx, barX, barY - 2, barW, 4);
-
-        // Slider knob at current position
-        const sliderX = barX + BAR_PAD + sliderPos * (barW - BAR_PAD * 2);
-        paintSlider(tbCtx, sliderX, barY);
+        paintBar(tbCtx, BAR_L, BAR_Y - 2, BAR_W);
+        const kx = BAR_L + sliderRatio * BAR_W;
+        paintSlider(tbCtx, kx, BAR_Y);
       }
 
-      // Frame counter (right-aligned, mirrors AS3 position display)
+      // Frame / stroke counter — right side, mirrors AS3 position label
       const step  = oneFrame ? Math.max(0, lastShownStroke) : curFrame;
       const label = (step + 1) + ' / ' + totalSteps + (oneFrame ? ' strokes' : '');
-      tbCtx.fillStyle = '#888';
-      tbCtx.font      = '10px Tahoma, sans-serif';
-      tbCtx.textAlign = 'right';
+      tbCtx.fillStyle    = '#888';
+      tbCtx.font         = '10px Tahoma, sans-serif';
+      tbCtx.textAlign    = 'right';
       tbCtx.textBaseline = 'middle';
-      tbCtx.fillText(label, W - 8, cy);
+      tbCtx.fillText(label, W - 6, TB_H / 2);
     }
 
-    /* ---- RAF loop for toolbar jitter ---- */
-    let rafId = null;
-    function toolbarLoop() {
-      // Only repaint toolbar every frame so jitter stays alive
-      // (mirrors AS3 ENTER_FRAME repaint on hover)
-      renderToolbar();
-      rafId = requestAnimationFrame(toolbarLoop);
-    }
-    toolbarLoop();
+    /* ---- Toolbar jitter interval: 100ms (10fps) ---- */
+    const tbTimer = setInterval(renderToolbar, 100);
 
-    /* ---- Update slider from current step ---- */
+    /* ---- Sync slider from current playback position ---- */
     function syncSlider() {
       const step = oneFrame ? Math.max(0, lastShownStroke) : curFrame;
-      sliderPos = totalSteps <= 1 ? 0 : step / (totalSteps - 1);
+      sliderRatio = totalSteps <= 1 ? 0 : step / (totalSteps - 1);
     }
 
-    /* ---- Playback ---- */
+    /* ---- Playback ticks ---- */
+
+    // Normal multi-frame — mirrors AS3 onEnterFrame normal branch
     function tickMulti() {
       renderToon();
       syncSlider();
       curFrame = (curFrame + 1) % frameCount;
     }
 
-    // mirrors AS3 oneFrame onEnterFrame branch exactly
+    // oneFrame reveal — mirrors AS3 onEnterFrame oneFrame branch exactly
     function tickOneFrame() {
       const next  = lastShownStroke + 1;
       const total = (frames[0].strokes || []).length;
@@ -358,7 +339,7 @@
         const total = (frames[0].strokes || []).length;
         if (lastShownStroke >= total - 1) lastShownStroke = -1;
       }
-      playing  = true;
+      playing   = true;
       animTimer = setInterval(oneFrame ? tickOneFrame : tickMulti, frameDelay);
     }
 
@@ -368,82 +349,81 @@
       animTimer = null;
     }
 
-    /* ---- Scrub helpers ---- */
+    /* ---- Seek ---- */
     function seekTo(ratio) {
-      const clamped = Math.max(0, Math.min(1, ratio));
-      const step    = Math.round(clamped * (totalSteps - 1));
-      sliderPos     = clamped;
+      const clamped   = Math.max(0, Math.min(1, ratio));
+      const step      = Math.round(clamped * (totalSteps - 1));
+      sliderRatio     = clamped;
       if (oneFrame) lastShownStroke = step;
       else          curFrame        = step;
       renderToon();
     }
 
-    function ratioFromEvent(e) {
-      const rect    = tbCanvas.getBoundingClientRect();
-      const scaleX  = W / rect.width;
-      const mouseX  = (e.clientX - rect.left) * scaleX;
-      return (mouseX - barX - BAR_PAD) / (barW - BAR_PAD * 2);
+    function ratioFromMouseEvent(e) {
+      const rect   = tbCanvas.getBoundingClientRect();
+      const scaleX = W / rect.width;
+      const mx     = (e.clientX - rect.left) * scaleX;
+      return (mx - BAR_L) / BAR_W;
     }
 
-    /* ---- Toolbar mouse events ---- */
-    // Click the button area (left ~35px)
+    /* ---- Toolbar interactions ---- */
     tbCanvas.addEventListener('click', (e) => {
       const rect   = tbCanvas.getBoundingClientRect();
       const scaleX = W / rect.width;
       const mx     = (e.clientX - rect.left) * scaleX;
-
-      if (mx < BTN_W + BTN_PAD * 2) {
-        // Button click — toggle play/pause
+      if (mx < BTN_AREA) {
+        // Button click
         if (playing) stopPlay(); else startPlay();
-      } else if (showBar) {
+      } else if (showBar && mx >= BAR_L && mx <= BAR_R) {
         // Bar click — seek
         stopPlay();
-        seekTo(ratioFromEvent(e));
+        seekTo(ratioFromMouseEvent(e));
       }
     });
 
-    // Also click the toon canvas to toggle
-    toonCanvas.addEventListener('click', () => {
-      if (playing) stopPlay(); else startPlay();
-    });
-
-    // Drag scrub
     tbCanvas.addEventListener('mousedown', (e) => {
       const rect   = tbCanvas.getBoundingClientRect();
       const scaleX = W / rect.width;
       const mx     = (e.clientX - rect.left) * scaleX;
-      if (!showBar || mx < BTN_W + BTN_PAD * 2) return;
+      if (!showBar || mx < BAR_L) return;
       sliderDragging = true;
       stopPlay();
-      seekTo(ratioFromEvent(e));
+      seekTo(ratioFromMouseEvent(e));
     });
 
     document.addEventListener('mousemove', (e) => {
       if (!sliderDragging) return;
-      seekTo(ratioFromEvent(e));
+      seekTo(ratioFromMouseEvent(e));
     });
 
     document.addEventListener('mouseup', () => {
       sliderDragging = false;
     });
 
-    /* ---- Init (mirrors AS3 checkComplete → showPosition(0)) ---- */
+    // Click toon canvas to toggle play/pause
+    toonCanvas.addEventListener('click', () => {
+      if (playing) stopPlay(); else startPlay();
+    });
+
+    /* ---- Init — mirrors AS3 checkComplete → showPosition(0) ---- */
     if (oneFrame) {
+      // Show full drawing on load; user clicks play to watch the reveal
       lastShownStroke = (frames[0].strokes || []).length - 1;
     } else {
       curFrame = 0;
     }
     syncSlider();
     renderToon();
+    renderToolbar();
 
-    // Auto-play multi-frame (mirrors AS3: if (!isPaused) play())
+    // Auto-play multi-frame toons (mirrors AS3: if (!isPaused) play())
     if (frameCount > 1) startPlay();
 
     /* ---- Public API ---- */
     return {
-      play:  startPlay,
-      pause: stopPlay,
-      goTo:  (n) => {
+      play:    startPlay,
+      pause:   stopPlay,
+      goTo:    (n) => {
         stopPlay();
         const step = Math.max(0, Math.min(n, totalSteps - 1));
         if (oneFrame) lastShownStroke = step;
@@ -453,7 +433,7 @@
       },
       destroy: () => {
         stopPlay();
-        cancelAnimationFrame(rafId);
+        clearInterval(tbTimer);
       }
     };
   }
