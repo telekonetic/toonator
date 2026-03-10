@@ -22,57 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('saveFinal').addEventListener('click', saveAnimation);
 });
 
-
-/* =====================================================
-   COMPACT STROKE SERIALIZATION
-   Each stroke is serialized as a 3-element array:
-     [
-       "color|size|eraser|oldschool",   // compact header string
-       [[x,y], [x,y], ...],             // points as flat pairs
-       [[x,y], ...]  | null             // polygon pairs (oldschool) or null
-     ]
-
-   Examples:
-     black pencil, size 2:   ["#000000|2|0|0", [[10,20],[15,25]], null]
-     red eraser, size 6:     ["#ff0000|6|1|0", [[5,5]], null]
-     oldschool brush, size 4:["#000000|4|0|1", [[...]], [[...]]]
-
-   Saves ~40–60% payload vs full stroke objects.
-   toon-player.js deserializes back to stroke objects on load.
-===================================================== */
-
-function serializeStroke(stroke) {
-  const color     = stroke.color     || '#000000';
-  const size      = stroke.size      || 2;
-  const eraser    = stroke.eraser    ? '1' : '0';
-  const oldschool = stroke.oldschool ? '1' : '0';
-
-  const header = `${color}|${size}|${eraser}|${oldschool}`;
-
-  // Points as flat [x, y] pairs — round to 2dp to trim floats
-  const points = (stroke.points || []).map(p => [
-    Math.round(p.x * 100) / 100,
-    Math.round(p.y * 100) / 100
-  ]);
-
-  // Polygon (oldschool only) — same rounding
-  const polygon = (stroke.oldschool && stroke.polygon && stroke.polygon.length > 0)
-    ? stroke.polygon.map(p => [
-        Math.round(p.x * 100) / 100,
-        Math.round(p.y * 100) / 100
-      ])
-    : null;
-
-  return [header, points, polygon];
-}
-
-function serializeFrames(frames) {
-  return frames.map(frame => ({
-    strokes: (frame.strokes || []).map(serializeStroke)
-  }));
-}
-
-
 /* =====================================================
    RENDER FRAME TO CANVAS AT SIZE
 ===================================================== */
@@ -89,10 +38,6 @@ function renderFrameToCanvas(frame, width, height) {
   frame.strokes.forEach(stroke => {
     if (!stroke.points || stroke.points.length === 0) return;
 
-    // Eraser
-    cx.globalCompositeOperation = stroke.eraser ? 'destination-out' : 'source-over';
-
-    // Oldschool brush — pre-built polygon
     if (stroke.oldschool && stroke.polygon && stroke.polygon.length > 0) {
       cx.beginPath();
       stroke.polygon.forEach((p, i) => {
@@ -100,19 +45,15 @@ function renderFrameToCanvas(frame, width, height) {
         i === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y);
       });
       cx.closePath();
-      cx.fillStyle = stroke.eraser ? 'rgba(0,0,0,1)' : stroke.color;
+      cx.fillStyle = stroke.color;
       cx.fill();
-      cx.globalCompositeOperation = 'source-over';
       return;
     }
 
-    if (stroke.points.length < 2) {
-      cx.globalCompositeOperation = 'source-over';
-      return;
-    }
+    if (stroke.points.length < 2) return;
 
     cx.beginPath();
-    cx.strokeStyle = stroke.eraser ? 'rgba(0,0,0,1)' : stroke.color;
+    cx.strokeStyle = stroke.color;
     cx.lineWidth = Math.max(1, stroke.size * scaleX);
     cx.lineCap = 'round';
     cx.lineJoin = 'round';
@@ -128,12 +69,10 @@ function renderFrameToCanvas(frame, width, height) {
       });
     }
     cx.stroke();
-    cx.globalCompositeOperation = 'source-over';
   });
 
   return c;
 }
-
 
 /* =====================================================
    GIF GENERATION
@@ -165,23 +104,11 @@ function generateGif(width, height) {
   });
 }
 
-
 /* =====================================================
    SAVE ANIMATION
-   Serializes frames in compact stroke format, then
-   persists to Supabase.
 ===================================================== */
 
 async function saveAnimation() {
-  console.log('saveAnimation called');
-  // ...
-  
-  // After GIF generation:
-  console.log('GIFs generated', blob200, blob40);
-  
-  // After upload:
-  console.log('upload done');
-  
   const title       = (document.getElementById('saveDialogName').value.trim() || 'Untitled').slice(0, 100);
   const keywords    = document.getElementById('saveDialogKeywords').value.trim().slice(0, 200);
   const description = document.getElementById('saveDialogDesc').value.trim().slice(0, 1000);
@@ -197,25 +124,23 @@ async function saveAnimation() {
     // 1. Get current user
     const { data: { user }, error: userError } = await db.auth.getUser();
     if (userError || !user) throw new Error('You must be logged in to save.');
+    console.log('[save] user ok:', user.id);
 
-    // 2. Compact-serialize all frames
-    const compactFrames = serializeFrames(frames);
-
-    // 3. Snapshot settings (document-level only — per-stroke settings live in the strokes)
+    // 2. Snapshot settings
     const savedSettings = {
       playFPS:           settings.playFPS,
       smoothing:         settings.smoothing,
       simplifyTolerance: settings.simplifyTolerance,
     };
 
-    // 4. Build insert payload
+    // 3. Build insert payload
     const insertData = {
       user_id:     user.id,
       title,
       keywords,
       description,
       is_draft:    isDraft,
-      frames:      compactFrames,
+      frames:      frames,
       settings:    savedSettings,
     };
 
@@ -232,21 +157,24 @@ async function saveAnimation() {
     if (insertError) throw insertError;
 
     const animId = anim.id;
+    console.log('[save] animation inserted:', animId);
 
     status.textContent = 'Generating previews...';
 
-    // 5. Generate GIFs at two sizes (use original in-memory frames, not compacted)
+    // 4. Generate GIFs at two sizes
     const [blob200, blob40] = await Promise.all([
       generateGif(200, 100),
       generateGif(40,  20)
     ]);
+    console.log('[save] GIFs generated, sizes:', blob200.size, blob40.size);
 
-    // 6. Upload GIFs to Supabase Storage
+    // 5. Upload GIFs to Supabase Storage
     const upload = async (blob, path) => {
+      console.log('[save] uploading:', path, 'size:', blob.size);
       const result = await db.storage
         .from('previews')
-        .upload(path, blob, { contentType: 'image/gif', upsert: false });
-      console.log('upload result:', result);
+        .upload(path, blob, { contentType: 'image/gif', upsert: true });
+      console.log('[save] upload result for', path, ':', JSON.stringify(result));
       if (result.error) throw result.error;
     };
 
@@ -257,6 +185,7 @@ async function saveAnimation() {
       upload(blob40,  `${animId}_40.gif`)
     ]);
 
+    console.log('[save] all done!');
     status.textContent = 'Saved!';
 
     setTimeout(() => {
@@ -265,7 +194,7 @@ async function saveAnimation() {
     }, 800);
 
   } catch (err) {
-    console.error(err);
+    console.error('[save] ERROR:', err);
     status.textContent = 'Error: ' + (err.message || 'Something went wrong.');
     btn.disabled = false;
   }
