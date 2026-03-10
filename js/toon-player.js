@@ -230,7 +230,7 @@
       'display:block', 'width:100%',
       'max-width:' + TB_W + 'px',
       'cursor:default', 'background:#fff',
-      'border-top:2px solid #00',
+      'border-top:2px solid #000',
     ].join(';');
 
     root.appendChild(borderCanvas);
