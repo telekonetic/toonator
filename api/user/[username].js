@@ -30,7 +30,7 @@ function getProfileHTML(username, page) {
     const PER_PAGE = 12;
   </script>
   <script src="/js/auth.js"></script>
-  <script src="/js/russian-users.js"></script>
+  <script src="/js/color-username.js"></script>
   <script>
     async function loadIncludes() {
       const header = await fetch('/includes/header.html').then(r => r.text());

@@ -3,17 +3,12 @@ const RUSSIAN_USERS_CACHE = {};
 async function colorRussianUsernames() {
   const usernameEls = document.querySelectorAll('a.username');
   if (!usernameEls.length) return;
-
   const usernames = [...new Set(
     [...usernameEls]
       .map(el => el.textContent.trim())
       .filter(Boolean)
-      // FIX: only send usernames that look like valid usernames to the API.
-      // This prevents a secondary XSS vector where a malicious string injected
-      // into a .username element gets forwarded to the backend as an API param.
       .filter(u => /^[a-zA-Z0-9_\- ]{1,50}$/.test(u))
   )];
-
   await Promise.all(usernames.map(async (uname) => {
     try {
       if (RUSSIAN_USERS_CACHE[uname] === undefined) {
@@ -27,14 +22,19 @@ async function colorRussianUsernames() {
           body: JSON.stringify({ p_username: uname })
         });
         const data = await res.json();
-        RUSSIAN_USERS_CACHE[uname] = data?.[0]?.russian || false;
+        RUSSIAN_USERS_CACHE[uname] = {
+          russian: data?.[0]?.russian || false,
+          role: data?.[0]?.role || 'user'
+        };
       }
-
-      if (RUSSIAN_USERS_CACHE[uname]) {
-        document.querySelectorAll('a.username').forEach(el => {
-          if (el.textContent.trim() === uname) el.classList.add('russian');
-        });
-      }
+      const cached = RUSSIAN_USERS_CACHE[uname];
+      document.querySelectorAll('a.username').forEach(el => {
+        if (el.textContent.trim() === uname) {
+          if (cached.role === 'admin') el.classList.add('admin');
+          else if (cached.role === 'mod') el.classList.add('mod');
+          else if (cached.russian) el.classList.add('russian');
+        }
+      });
     } catch (e) {}
   }));
 }
@@ -44,5 +44,4 @@ function observeAndColorUsernames() {
   const observer = new MutationObserver(() => colorRussianUsernames());
   observer.observe(document.body, { childList: true, subtree: true });
 }
-
 document.addEventListener('DOMContentLoaded', observeAndColorUsernames);
