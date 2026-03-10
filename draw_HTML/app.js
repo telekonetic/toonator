@@ -116,7 +116,14 @@ function render() {
 // NEW: shared stroke renderer — uses multicurve spline when enough points exist,
 // falls back to straight lines for very short strokes (mirrors ActionScript logic)
 function drawFrameStrokes(targetCtx, strokes) {
+  // Reset all context state
+  targetCtx.globalCompositeOperation = 'source-over';
+  targetCtx.globalAlpha = 1;
   strokes.forEach(stroke => {
+    if (stroke.eraser) {
+      targetCtx.globalCompositeOperation = 'destination-out';
+    }
+
     targetCtx.beginPath();
     targetCtx.lineWidth = stroke.size * renderScale;
     targetCtx.strokeStyle = stroke.color;
@@ -129,7 +136,6 @@ function drawFrameStrokes(targetCtx, strokes) {
       if (settings.smoothing) {
         drawMulticurve(targetCtx, stroke.points, false);
       } else {
-        // raw polyline when smoothing is off
         stroke.points.forEach((p, i) => {
           const x = p.x * renderScale, y = p.y * renderScale;
           if (i === 0) targetCtx.moveTo(x, y);
@@ -137,6 +143,11 @@ function drawFrameStrokes(targetCtx, strokes) {
         });
       }
       targetCtx.stroke();
+    }
+    
+    // Reset only if we changed it
+    if (stroke.eraser) {
+      targetCtx.globalCompositeOperation = 'source-over';
     }
   });
 }
