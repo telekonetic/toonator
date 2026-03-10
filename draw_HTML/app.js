@@ -35,11 +35,13 @@ let drawing = false;
 
 let brushSize = 2;
 let color = "#000";
+let eraserMode = false;  // NEW: track eraser mode separately
 
 let frames = [{ strokes: [] }];
 
 let currentFrame = 0;
 let previousFrame = -1;
+let lastViewedFrame = -1;  // NEW: track last clicked/viewed frame for onion skin
 
 let currentStroke = null;
 
@@ -88,14 +90,23 @@ let renderScale = 1;
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if (settings.onionSkin && currentFrame > 1 && settings.onionSkin2) {
-    ctx.globalAlpha = settings.onionAlpha2;
-    drawFrameStrokes(ctx, frames[currentFrame - 2].strokes);
-  }
+  // NEW: Don't show onion skin during playback
+  if (!playing) {
+    // Use lastViewedFrame instead of currentFrame - 1 for onion skin
+    if (settings.onionSkin && lastViewedFrame >= 0 && lastViewedFrame !== currentFrame) {
+      // Show 2nd previous frame if enabled and exists
+      if (settings.onionSkin2 && lastViewedFrame > 0) {
+        const twoBack = frames[lastViewedFrame - 1];
+        if (twoBack) {
+          ctx.globalAlpha = settings.onionAlpha2;
+          drawFrameStrokes(ctx, twoBack.strokes);
+        }
+      }
 
-  if (settings.onionSkin && currentFrame > 0) {
-    ctx.globalAlpha = settings.onionAlpha1;
-    drawFrameStrokes(ctx, frames[currentFrame - 1].strokes);
+      // Show last viewed frame
+      ctx.globalAlpha = settings.onionAlpha1;
+      drawFrameStrokes(ctx, frames[lastViewedFrame].strokes);
+    }
   }
 
   ctx.globalAlpha = 1;
@@ -106,6 +117,13 @@ function render() {
 // falls back to straight lines for very short strokes (mirrors ActionScript logic)
 function drawFrameStrokes(targetCtx, strokes) {
   strokes.forEach(stroke => {
+    // NEW: Use destination-out for eraser strokes
+    if (stroke.eraser) {
+      targetCtx.globalCompositeOperation = 'destination-out';
+    } else {
+      targetCtx.globalCompositeOperation = 'source-over';
+    }
+
     targetCtx.beginPath();
     targetCtx.lineWidth = stroke.size * renderScale;
     targetCtx.strokeStyle = stroke.color;
@@ -128,6 +146,8 @@ function drawFrameStrokes(targetCtx, strokes) {
       targetCtx.stroke();
     }
   });
+  // Reset composite operation
+  targetCtx.globalCompositeOperation = 'source-over';
 }
 
 
@@ -379,6 +399,45 @@ function stopIfPlaying() {
 
 
 /* =====================================================
+   CUSTOM CURSOR
+===================================================== */
+
+let cursorCanvas = null;
+let cursorCtx = null;
+
+function createCursorCanvas() {
+  if (!cursorCanvas) {
+    cursorCanvas = document.createElement('canvas');
+    cursorCtx = cursorCanvas.getContext('2d');
+  }
+  const size = Math.max(brushSize * 2 + 4, 20);
+  cursorCanvas.width = size;
+  cursorCanvas.height = size;
+  const center = size / 2;
+  
+  cursorCtx.clearRect(0, 0, size, size);
+  cursorCtx.strokeStyle = eraserMode ? '#666' : '#000';
+  cursorCtx.lineWidth = 1;
+  cursorCtx.beginPath();
+  cursorCtx.arc(center, center, brushSize, 0, Math.PI * 2);
+  cursorCtx.stroke();
+  
+  return cursorCanvas.toDataURL();
+}
+
+function updateCursor() {
+  if (eyedropperActive) {
+    canvas.style.cursor = 'crosshair';
+  } else {
+    const cursorUrl = createCursorCanvas();
+    const size = Math.max(brushSize * 2 + 4, 20);
+    const center = size / 2;
+    canvas.style.cursor = `url('${cursorUrl}') ${center} ${center}, auto`;
+  }
+}
+
+
+/* =====================================================
    DRAW INPUT
 ===================================================== */
 
@@ -387,7 +446,8 @@ canvas.addEventListener("mousedown", (e) => {
   drawing = true;
   currentStroke = {
     size: brushSize,
-    color: color,
+    color: eraserMode ? '#000' : color,  // Store black for eraser
+    eraser: eraserMode,  // NEW: flag to use destination-out
     points: [],
     oldschool: oldschoolMode,
     polygon: null
@@ -409,6 +469,7 @@ canvas.addEventListener("mousemove", (e) => {
 });
 
 canvas.addEventListener("mouseup", () => {
+  if (!drawing) return;
   drawing = false;
   ctx.beginPath();
 
@@ -427,20 +488,50 @@ canvas.addEventListener("mouseup", () => {
   render();
 });
 
+// NEW: Stop drawing when mouse leaves canvas
+canvas.addEventListener("mouseleave", () => {
+  if (!drawing) return;
+  drawing = false;
+  ctx.beginPath();
+
+  // simplify points on mouse leave
+  if (currentStroke && currentStroke.points.length > 2 && settings.simplifyTolerance > 0) {
+    currentStroke.points = simplifyPoints(currentStroke.points, settings.simplifyTolerance);
+  }
+
+  // build oldschool polygon outline after simplification
+  if (currentStroke && currentStroke.oldschool && currentStroke.points.length >= 2) {
+    currentStroke.polygon = buildOldschoolPolygon(currentStroke.points, currentStroke.size / 2);
+  }
+
+  updateThumbnail(currentFrame);
+  drawFramesTimeline();
+  render();
+});
+
 
 /* =====================================================
    FRAME MANAGEMENT
 ===================================================== */
 
-function newFrame(){
+function newFrame(insertBefore = false){
 
   stopIfPlaying();
   updateThumbnail(currentFrame);
 
-  frames.push({strokes:[]});
-
-  previousFrame=currentFrame;
-  currentFrame=frames.length-1;
+  if (insertBefore) {
+    // Insert new frame before current frame
+    frames.splice(currentFrame, 0, {strokes:[]});
+    frameThumbs.splice(currentFrame, 0, null);
+    // Stay on the same index (which is now the new frame)
+    lastViewedFrame = currentFrame > 0 ? currentFrame - 1 : -1;
+  } else {
+    // Add new frame at end
+    frames.push({strokes:[]});
+    previousFrame = currentFrame;
+    currentFrame = frames.length - 1;
+    lastViewedFrame = previousFrame;
+  }
 
   updateSliderMax();
   autoScrollTimeline();
@@ -454,6 +545,7 @@ function nextFrame(){
 
   if(currentFrame<frames.length-1){
 
+    lastViewedFrame = currentFrame;  // NEW: track last viewed
     previousFrame=currentFrame;
     currentFrame++;
 
@@ -468,6 +560,7 @@ function prevFrame(){
 
   if(currentFrame>0){
 
+    lastViewedFrame = currentFrame;  // NEW: track last viewed
     previousFrame=currentFrame;
     currentFrame--;
 
@@ -547,7 +640,6 @@ function updateThumbnail(frameIndex){
   const tctx=thumb.getContext("2d");
 
   tctx.lineWidth = 1;
-  tctx.strokeStyle = "black";
   tctx.lineCap = "round";
   tctx.lineJoin = "round";
 
@@ -564,10 +656,11 @@ function updateThumbnail(frameIndex){
         else tctx.lineTo(x, y);
       });
       tctx.closePath();
-      tctx.fillStyle = "black";
+      tctx.fillStyle = stroke.color;  // NEW: use actual stroke color
       tctx.fill();
     } else {
       // Draw spline curve in thumbnail
+      tctx.strokeStyle = stroke.color;  // NEW: use actual stroke color
       tctx.beginPath();
       drawMulticurveRaw(tctx, stroke.points, 1 / 12, false);
       tctx.stroke();
@@ -703,6 +796,7 @@ timelineCanvas.addEventListener("mousedown",(e)=>{
 
   if(frame<frames.length){
 
+    lastViewedFrame = currentFrame;  // NEW: track last viewed before jumping
     previousFrame=currentFrame;
     currentFrame=frame;
 
@@ -798,7 +892,10 @@ snapSlider();
    TOOLBAR BUTTONS
 ===================================================== */
 
-document.getElementById("btnAdd").addEventListener("click", newFrame);
+// NEW: Ctrl+click to insert before current frame
+document.getElementById("btnAdd").addEventListener("click", (e) => {
+  newFrame(e.ctrlKey || e.metaKey);
+});
 
 document.getElementById("btnDelete").addEventListener("click", () => {
   stopIfPlaying();
@@ -807,6 +904,7 @@ document.getElementById("btnDelete").addEventListener("click", () => {
   frameThumbs.splice(currentFrame, 1);
   if (currentFrame >= frames.length) currentFrame = frames.length - 1;
   previousFrame = -1;
+  lastViewedFrame = -1;  // Reset last viewed
   const newMax = Math.max(frames.length - 10, 0);
   if (newMax < max) pos = Math.min(pos, newMax);
   updateSliderMax();
@@ -839,24 +937,26 @@ function setActiveTool(btnId) {
 
 document.getElementById("btnPencil").addEventListener("click", () => {
   color = "#000";
+  eraserMode = false;
   eyedropperActive = false;
   oldschoolMode = false;
-  canvas.style.cursor = "default";
+  updateCursor();
   setActiveTool("btnPencil");
 });
 
 document.getElementById("btnEraser").addEventListener("click", () => {
-  color = "#fff";
+  eraserMode = true;
   eyedropperActive = false;
   oldschoolMode = false;
-  canvas.style.cursor = "default";
+  updateCursor();
   setActiveTool("btnEraser");
 });
 
 document.getElementById("btnEyedropper").addEventListener("click", () => {
   eyedropperActive = !eyedropperActive;
+  eraserMode = false;
   oldschoolMode = false;
-  canvas.style.cursor = eyedropperActive ? "crosshair" : "default";
+  updateCursor();
   setActiveTool(eyedropperActive ? "btnEyedropper" : "btnPencil");
 });
 
@@ -865,7 +965,8 @@ function switchOldschool() {
   oldschoolMode = !oldschoolMode;
   settings.oldschoolMode = oldschoolMode;
   eyedropperActive = false;
-  canvas.style.cursor = "default";
+  eraserMode = false;
+  updateCursor();
   // sync checkbox if panel is open
   const cb = document.getElementById('settingOldschool');
   if (cb) cb.checked = oldschoolMode;
@@ -876,7 +977,8 @@ canvas.addEventListener("click", (e) => {
   const pixel = ctx.getImageData(e.offsetX, e.offsetY, 1, 1).data;
   color = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
   eyedropperActive = false;
-  canvas.style.cursor = "default";
+  eraserMode = false;
+  updateCursor();
   setActiveTool("btnPencil");
 });
 
@@ -890,6 +992,7 @@ function updateSizeIndicator() {
   sizeButtons.forEach((id, i) => {
     document.getElementById(id).classList.toggle('btnSizeActive', i === index);
   });
+  updateCursor();  // NEW: update cursor when size changes
 }
 
 function setActiveSize(index) {
@@ -961,7 +1064,8 @@ document.addEventListener("keydown",(e)=>{
       break;
 
     case "n":
-      newFrame();
+      // NEW: Ctrl+N inserts before current frame
+      newFrame(e.ctrlKey || e.metaKey);
       break;
 
   }
@@ -980,11 +1084,13 @@ function setActiveColor(btnId) {
 
 document.getElementById('btnColorBlack').addEventListener('click', () => {
   color = '#000000';
+  eraserMode = false;
   setActiveTool('btnPencil');
   setActiveColor('btnColorBlack');
 });
 document.getElementById('btnColorRed').addEventListener('click', () => {
   color = '#ff0000';
+  eraserMode = false;
   setActiveTool('btnPencil');
   setActiveColor('btnColorRed');
 });
@@ -993,8 +1099,10 @@ document.getElementById('colorPicker').addEventListener('input', (e) => {
   document.getElementById('btnColorCustom').style.background = color;
   setActiveColor('btnColorCustom');
   if (color === '#ffffff') {
+    eraserMode = true;
     setActiveTool('btnEraser');
   } else {
+    eraserMode = false;
     setActiveTool('btnPencil');
   }
 });
@@ -1085,6 +1193,7 @@ async function loadContinue() {
 
   currentFrame = 0;
   previousFrame = -1;
+  lastViewedFrame = -1;
 
   updateSliderMax();
   render();
