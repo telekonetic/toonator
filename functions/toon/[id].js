@@ -416,9 +416,13 @@ async function handleLike() {
       valueEl.textContent = Math.max(0, parseInt(valueEl.textContent) - 1);
     }
   } else {
+    // upsert instead of insert — safe against duplicates
     const { error } = await db
       .from('likes')
-      .insert({ animation_id: TOON_ID, user_id: user.id });
+      .upsert(
+        { animation_id: TOON_ID, user_id: user.id },
+        { onConflict: 'animation_id,user_id', ignoreDuplicates: true }
+      );
 
     if (!error) {
       link.classList.add('active');
