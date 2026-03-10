@@ -18,7 +18,6 @@ function getProfileHTML(username, page) {
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/css/font.css">
   <link rel="stylesheet" href="/css/images_ru.css">
-  <style>.username.russian { color: #030 !important; }</style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const { createClient } = supabase;

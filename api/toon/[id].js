@@ -114,7 +114,6 @@ export default async function handler(req, res) {
   <link href="/css/font.css" type="text/css" rel="stylesheet"/>
   <link href="/css/images_ru.css" type="text/css" rel="stylesheet"/>
   <link href="/style.css" type="text/css" rel="stylesheet"/>
-  <style>.username.russian { color: #030 !important; }</style>
   <meta property="og:title" content="${title} - Toonator. Draw animation yourself!"/>
   <meta property="og:description" content="${description || title}"/>
   <meta property="og:image" content="${previewUrl}"/>
