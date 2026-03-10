@@ -69,22 +69,22 @@ canvas {
 <div id="settingsOverlay">
   <div id="settingsPanel">
     <div id="settingsHeader">
-      <span id="settingsTitle">Settings</span>
+      <span id="settingsTitle">Настройки</span>
       <span id="settingsClose">&#x2715;</span>
     </div>
 
     <div class="settingsGroup">
-      <div class="settingsGroupLabel">BRUSH</div>
+      <div class="settingsGroupLabel">Кисть</div>
       <div class="settingsRow">
-        <span>Oldschool brush<span class="settingsHint">(type "old")</span></span>
+        <span>Кисть Олдскул<span class="settingsHint">(наберите "old")</span></span>
         <input type="checkbox" id="settingOldschool">
       </div>
       <div class="settingsRow">
-        <span>Curve smoothing</span>
+        <span>Смягчение линий</span>
         <input type="checkbox" id="settingSmoothing" checked>
       </div>
       <div class="settingsRow">
-        <span>Simplify<span class="settingsHint">(0 = off)</span></span>
+        <span>Упрощение<span class="settingsHint">(0 = выключено)</span></span>
         <div class="settingsSliderWrap">
           <input type="range" id="settingSimplify" min="0" max="20" step="1" value="5">
           <span class="settingsVal" id="settingSimplifyVal">5</span>
@@ -93,24 +93,24 @@ canvas {
     </div>
 
     <div class="settingsGroup">
-      <div class="settingsGroupLabel">ONION SKIN</div>
+      <div class="settingsGroupLabel">Луковая кожица</div>
       <div class="settingsRow">
-        <span>Enable onion skin</span>
+        <span>Включить луковую кожицу</span>
         <input type="checkbox" id="settingOnion" checked>
       </div>
       <div class="settingsRow">
-        <span>2nd previous frame</span>
+        <span>2ой предыдущий кадр</span>
         <input type="checkbox" id="settingOnion2" checked>
       </div>
       <div class="settingsRow">
-        <span>Frame -1 opacity</span>
+        <span>Прозрачность -1 кадра</span>
         <div class="settingsSliderWrap">
           <input type="range" id="settingAlpha1" min="0" max="100" step="5" value="30">
           <span class="settingsVal" id="settingAlpha1Val">30%</span>
         </div>
       </div>
       <div class="settingsRow">
-        <span>Frame -2 opacity</span>
+        <span>Прозрачность -2 кадра</span>
         <div class="settingsSliderWrap">
           <input type="range" id="settingAlpha2" min="0" max="100" step="5" value="10">
           <span class="settingsVal" id="settingAlpha2Val">10%</span>
@@ -119,9 +119,9 @@ canvas {
     </div>
 
     <div class="settingsGroup">
-      <div class="settingsGroupLabel">PLAYBACK</div>
+      <div class="settingsGroupLabel">Воспроизведение</div>
       <div class="settingsRow">
-        <span>Speed (FPS)</span>
+        <span>Скорость (FPS)</span>
         <div class="settingsSliderWrap">
           <input type="range" id="settingFPS" min="1" max="30" step="1" value="10">
           <span class="settingsVal" id="settingFPSVal">10</span>
