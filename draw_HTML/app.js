@@ -129,7 +129,6 @@ function drawFrameStrokes(targetCtx, strokes) {
     targetCtx.strokeStyle = stroke.color;
     targetCtx.lineCap = "round";
     targetCtx.lineJoin = "round";
-    targetCtx.miterLimit = 10;  // Prevent sharp spikes at joins
 
     if (stroke.oldschool) {
       drawOldschoolStroke(targetCtx, stroke);
