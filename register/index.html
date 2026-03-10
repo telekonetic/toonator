@@ -103,13 +103,24 @@ async function registerUser() {
   const { data, error } = await db.auth.signUp({
     email,
     password,
-    options: { data: { username, russian: true } }
+    options: {
+      data: { username, russian: true },
+      emailRedirectTo: 'https://www.multator.site/'
+    }
   });
 
   if (error) {
     document.getElementById('err_general').style.display = 'block';
     document.getElementById('err_general').innerText = error.message;
     return;
+  }
+
+  if (data.user) {
+    await db.from('users').insert({
+      id: data.user.id,
+      username: username,
+      russian: true
+    });
   }
 
   // Tell the user to check their email instead of silently redirecting
