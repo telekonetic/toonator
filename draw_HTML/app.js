@@ -645,6 +645,13 @@ function updateThumbnail(frameIndex){
 
   frames[frameIndex].strokes.forEach(stroke => {
 
+    // Handle eraser strokes with destination-out
+    if (stroke.eraser) {
+      tctx.globalCompositeOperation = 'destination-out';
+    } else {
+      tctx.globalCompositeOperation = 'source-over';
+    }
+
     if (stroke.oldschool && stroke.polygon) {
       // Draw filled polygon in thumbnail
       const poly = stroke.polygon;
@@ -667,6 +674,9 @@ function updateThumbnail(frameIndex){
     }
 
   });
+
+  // Reset composite operation
+  tctx.globalCompositeOperation = 'source-over';
 
   frameThumbs[frameIndex]=thumb;
 
