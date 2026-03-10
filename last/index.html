@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Олдскул - Мультатор. Нарисовать мультфильм. Анимация онлайн.</title>
+  <title>Last toons - Toonator.com</title>
   <link rel="shortcut icon" href="/img/favicon-eyes.png"/>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/css/font.css">
-  <link rel="stylesheet" href="/css/images_ru.css">
+  <link rel="stylesheet" href="/css/images.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const { createClient } = supabase;
@@ -35,32 +35,41 @@
 <body>
 <div id="donate_placeholder"></div>
 <div id="header_placeholder"></div>
+
 <div id="content_wrap">
   <div id="content">
+
     <div class="content_left">
       <h1>
-        <a href="/last/" class="nmenu selected"><nobr>Олдскул</nobr></a> |
-        <a href="/last/color/" class="nmenu"><nobr>Цветные</nobr></a> |
-        <a href="/last/sandbox/" class="nmenu"><nobr>Песочница</nobr></a>
+        <a href="/last/" class="nmenu selected">Oldschool</a> |
+        <a href="/last/color/" class="nmenu">Colorfull</a> |
+        <a href="/last/sandbox/" class="nmenu">Sandbox</a>
       </h1>
+
       <div class="paginator" id="paginator-top"></div>
+
       <div class="toons_container">
         <div class="toons_list" id="toons-list">
-          <div style="text-align:center;color:#888;padding:20px;">Загрузка...</div>
+          <div style="text-align:center;color:#888;padding:20px;">Loading...</div>
         </div>
       </div>
+
       <div class="paginator" id="paginator-bottom"></div>
     </div>
+
     <div class="content_right">
-      <h1><a href="/goodplace/">Козырное место</a></h1>
+      <h1><a href="/goodplace/">Good Place</a></h1>
       <div id="good-place-toon"></div>
-      <h1>Последние комментарии</h1>
+
+      <h1>Last comments</h1>
       <div id="last-comments"></div>
     </div>
+
     <div class="clear"></div>
   </div>
   <div id="footer_placeholder"></div>
 </div>
+
 <script>
   const SUPABASE_URL = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0';
@@ -117,9 +126,9 @@
         <div class="toon_name"><a class="link" href="/toon/${toon.id}">${title}</a></div>
         <div class="toon_tagline">
           <a href="/user/${escapeHTML(username)}" class="username foreign">${escapeHTML(username)}</a>,
-          ${pluralFrames(frames.length)}
+          ${frameStr}
         </div>
-        <div class="toon_tagline">${pluralComments(toon.comment_count || 0)}</div>
+        <div class="toon_tagline">${commentStr}</div>
       </div>`;
   }
 
@@ -180,9 +189,9 @@
         <div class="toon_name"><a class="link" href="/toon/${toon.id}">${title}</a></div>
         <div class="toon_tagline">
           <a href="/user/${escapeHTML(username)}" class="username foreign">${escapeHTML(username)}</a>,
-          ${pluralFrames(frames.length)}
+          ${frames.length} frames
         </div>
-        <div class="toon_tagline">${pluralComments(toon.comment_count || 0)}</div>
+        <div class="toon_tagline">${commentStr}</div>
       </div>`;
   }
 
