@@ -50,6 +50,12 @@ let copiedFrame = null;
 
 let eyedropperActive = false;
 
+// NEW: oldschool brush mode toggle
+let oldschoolMode = false;
+
+// Tracks last 3 keypresses to detect the "old" cheat code (mirrors AS3 lastThreeKeys)
+const lastThreeKeys = [0, 0, 0];
+
 const brushSizes = [2, 4, 6, 10, 20];
 const sizeButtons = ['btnSize1','btnSize2','btnSize3','btnSize4','btnSize5'];
 
@@ -69,35 +75,269 @@ let renderScale = 1;
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // NEW: show two previous frames for onion skinning (like the ActionScript backSprite2 / backSprite)
+  if (currentFrame > 1) {
+    ctx.globalAlpha = 0.1;
+    drawFrameStrokes(ctx, frames[currentFrame - 2].strokes);
+  }
+
   if (currentFrame > 0) {
     ctx.globalAlpha = 0.3;
-    frames[currentFrame - 1].strokes.forEach(stroke => {
-      ctx.beginPath();
-      ctx.lineWidth = stroke.size * renderScale;
-      ctx.strokeStyle = stroke.color;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      stroke.points.forEach((p, i) => {
-        if (i === 0) ctx.moveTo(p.x * renderScale, p.y * renderScale);
-        else ctx.lineTo(p.x * renderScale, p.y * renderScale);
-      });
-      ctx.stroke();
-    });
+    drawFrameStrokes(ctx, frames[currentFrame - 1].strokes);
   }
 
   ctx.globalAlpha = 1;
-  frames[currentFrame].strokes.forEach(stroke => {
-    ctx.beginPath();
-    ctx.lineWidth = stroke.size * renderScale;
-    ctx.strokeStyle = stroke.color;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    stroke.points.forEach((p, i) => {
-      if (i === 0) ctx.moveTo(p.x * renderScale, p.y * renderScale);
-      else ctx.lineTo(p.x * renderScale, p.y * renderScale);
-    });
-    ctx.stroke();
+  drawFrameStrokes(ctx, frames[currentFrame].strokes);
+}
+
+// NEW: shared stroke renderer — uses multicurve spline when enough points exist,
+// falls back to straight lines for very short strokes (mirrors ActionScript logic)
+function drawFrameStrokes(targetCtx, strokes) {
+  strokes.forEach(stroke => {
+    targetCtx.beginPath();
+    targetCtx.lineWidth = stroke.size * renderScale;
+    targetCtx.strokeStyle = stroke.color;
+    targetCtx.lineCap = "round";
+    targetCtx.lineJoin = "round";
+
+    if (stroke.oldschool) {
+      // Oldschool filled-outline strokes are stored as a polygon path
+      drawOldschoolStroke(targetCtx, stroke);
+    } else {
+      drawMulticurve(targetCtx, stroke.points, false);
+      targetCtx.stroke();
+    }
   });
+}
+
+
+/* =====================================================
+   MULTICURVE — ported from ActionScript multicurve()
+   Draws smooth quadratic Bézier splines through points.
+   Uses midpoints between consecutive points as anchors,
+   matching the AS3 drawPath / curveTo logic exactly.
+===================================================== */
+
+function drawMulticurve(targetCtx, points, closed) {
+  if (!points || points.length === 0) return;
+
+  const scaled = points.map(p => ({ x: p.x * renderScale, y: p.y * renderScale }));
+  const n = scaled.length;
+
+  if (n === 1) {
+    // Single point — draw a dot
+    targetCtx.arc(scaled[0].x, scaled[0].y, targetCtx.lineWidth / 2, 0, Math.PI * 2);
+    return;
+  }
+
+  if (n === 2) {
+    targetCtx.moveTo(scaled[0].x, scaled[0].y);
+    targetCtx.lineTo(scaled[1].x, scaled[1].y);
+    return;
+  }
+
+  // Compute midpoints array (mirrors AS3 _loc11_ / _loc12_ arrays)
+  const mx = [];
+  const my = [];
+
+  for (let i = 1; i < n - 2; i++) {
+    mx[i] = 0.5 * (scaled[i + 1].x + scaled[i].x);
+    my[i] = 0.5 * (scaled[i + 1].y + scaled[i].y);
+  }
+
+  if (closed) {
+    mx[0]     = 0.5 * (scaled[1].x + scaled[0].x);
+    my[0]     = 0.5 * (scaled[1].y + scaled[0].y);
+    mx[n - 1] = 0.5 * (scaled[n - 1].x + scaled[n - 2].x);
+    my[n - 1] = 0.5 * (scaled[n - 1].y + scaled[n - 2].y);
+  } else {
+    // Open path: first and last midpoints are just the endpoints themselves
+    mx[0]     = scaled[0].x;
+    my[0]     = scaled[0].y;
+    mx[n - 2] = scaled[n - 1].x;
+    my[n - 2] = scaled[n - 1].y;
+  }
+
+  targetCtx.moveTo(mx[0], my[0]);
+
+  for (let i = 1; i < n - 1; i++) {
+    // quadraticCurveTo: control point = actual point, end = next midpoint
+    targetCtx.quadraticCurveTo(scaled[i].x, scaled[i].y, mx[i], my[i]);
+  }
+
+  if (closed) {
+    targetCtx.quadraticCurveTo(scaled[n - 1].x, scaled[n - 1].y, mx[0], my[0]);
+    targetCtx.closePath();
+  }
+}
+
+
+/* =====================================================
+   OLDSCHOOL BRUSH MODE — ported from AS3 onOldEndDraw()
+   Builds a filled polygon outline around the stroke path,
+   with rounded end caps and slight random width variation.
+===================================================== */
+
+function getAngle(a, b) {
+  if (a.y === b.y && a.x === b.x) return 0;
+  let angle = Math.atan2(b.y - a.y, b.x - a.x);
+  while (angle < 0) angle += Math.PI * 2;
+  while (angle > Math.PI * 2) angle -= Math.PI * 2;
+  return angle;
+}
+
+function midAngle(a, b) {
+  while (a < 0) a += Math.PI * 2;
+  while (a > Math.PI * 2) a -= Math.PI * 2;
+  while (b < 0) b += Math.PI * 2;
+  while (b > Math.PI * 2) b -= Math.PI * 2;
+
+  let diff = (Math.PI * 2 - a + b) % (Math.PI * 2);
+  let result = a + diff / 2;
+  result = result % (Math.PI * 2);
+  return result;
+}
+
+function buildOldschoolPolygon(points, halfWidth) {
+  const CAP_STEPS = 4;        // matches AS3 _loc3_ = 4
+  const r = halfWidth;
+  const poly = [];
+
+  if (points.length < 2) {
+    // Single dot — circle approximation
+    for (let a = 0; a < Math.PI * 2; a += Math.PI / CAP_STEPS) {
+      poly.push({ x: points[0].x + r * Math.cos(a), y: points[0].y + r * Math.sin(a) });
+    }
+    return poly;
+  }
+
+  // Jitter range for organic width variation (mirrors AS3 _loc16_)
+  let jitter = r / 2;
+  if (jitter < 2) jitter = 2;
+  if (jitter > 6) jitter = 6;
+
+  // ---- Forward pass: left side of stroke ----
+  let angle = getAngle(points[0], points[1]);
+
+  // Start cap (semicircle)
+  for (let a = angle + Math.PI / 2; a < angle + Math.PI / 2 + Math.PI + Math.PI / CAP_STEPS / 2; a += Math.PI / CAP_STEPS) {
+    poly.push({ x: points[0].x + r * Math.cos(a), y: points[0].y + r * Math.sin(a) });
+  }
+
+  // Mid-points going forward
+  for (let i = 1; i < points.length - 1; i++) {
+    const nextAngle = getAngle(points[i], points[i + 1]);
+    let delta = angle - nextAngle;
+
+    let turnRight;
+    if (delta > Math.PI)      { delta = Math.PI * 2 - delta; turnRight = false; }
+    else if (delta < -Math.PI) { delta = Math.PI * 2 + delta; turnRight = true; }
+    else if (delta >= 0)       { turnRight = true; }
+    else                       { delta = -delta; turnRight = false; }
+
+    const mid = midAngle(angle - Math.PI / 2, nextAngle - Math.PI / 2);
+    const outAngle = turnRight ? mid + Math.PI : mid;
+
+    if (delta > Math.PI / 4) {
+      poly.push({ x: points[i].x + r * Math.cos(outAngle), y: points[i].y + r * Math.sin(outAngle) });
+    } else {
+      const rj = r + Math.random() * jitter - jitter / 2;
+      poly.push({ x: points[i].x + rj * Math.cos(outAngle), y: points[i].y + rj * Math.sin(outAngle) });
+    }
+
+    angle = nextAngle;
+  }
+
+  // End cap (semicircle)
+  angle = getAngle(points[points.length - 2], points[points.length - 1]);
+  const endR = r + Math.random() * jitter - jitter / 2;
+  for (let a = angle + Math.PI / 2 + Math.PI; a < angle + Math.PI / 2 + Math.PI * 2 + Math.PI / CAP_STEPS / 2; a += Math.PI / CAP_STEPS) {
+    poly.push({ x: points[points.length - 1].x + endR * Math.cos(a), y: points[points.length - 1].y + endR * Math.sin(a) });
+  }
+
+  // ---- Backward pass: right side of stroke ----
+  angle = getAngle(points[points.length - 1], points[points.length - 2]);
+
+  for (let i = points.length - 2; i > 0; i--) {
+    const nextAngle = getAngle(points[i], points[i - 1]);
+    let delta = angle - nextAngle;
+
+    let turnRight;
+    if (delta > Math.PI)      { delta = Math.PI * 2 - delta; turnRight = false; }
+    else if (delta < -Math.PI) { delta = Math.PI * 2 + delta; turnRight = true; }
+    else if (delta >= 0)       { turnRight = true; }
+    else                       { delta = -delta; turnRight = false; }
+
+    const mid = midAngle(angle - Math.PI / 2, nextAngle - Math.PI / 2);
+    const outAngle = turnRight ? mid + Math.PI : mid;
+
+    if (delta > Math.PI / 4) {
+      poly.push({ x: points[i].x + r * Math.cos(outAngle), y: points[i].y + r * Math.sin(outAngle) });
+    } else {
+      const rj = r + Math.random() * jitter - jitter / 2;
+      poly.push({ x: points[i].x + rj * Math.cos(outAngle), y: points[i].y + rj * Math.sin(outAngle) });
+    }
+
+    angle = nextAngle;
+  }
+
+  return poly;
+}
+
+function drawOldschoolStroke(targetCtx, stroke) {
+  if (!stroke.polygon || stroke.polygon.length === 0) return;
+  const poly = stroke.polygon;
+  targetCtx.beginPath();
+  poly.forEach((p, i) => {
+    const x = p.x * renderScale;
+    const y = p.y * renderScale;
+    if (i === 0) targetCtx.moveTo(x, y);
+    else targetCtx.lineTo(x, y);
+  });
+  targetCtx.closePath();
+  targetCtx.fillStyle = stroke.color;
+  targetCtx.fill();
+}
+
+
+/* =====================================================
+   LINE SIMPLIFICATION — ported from AS3 LineGeneralization
+   Ramer–Douglas–Peucker algorithm.
+   Reduces redundant collinear points after mouse-up,
+   mirroring the AS3 simplifyLang(5, 10, points) call.
+===================================================== */
+
+function simplifyPoints(points, tolerance) {
+  if (points.length <= 2) return points;
+
+  function perpendicularDist(p, a, b) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+    const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / lenSq));
+    return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+  }
+
+  function rdp(pts, start, end, tol, keep) {
+    if (end <= start + 1) return;
+    let maxDist = 0, maxIdx = start;
+    for (let i = start + 1; i < end; i++) {
+      const d = perpendicularDist(pts[i], pts[start], pts[end]);
+      if (d > maxDist) { maxDist = d; maxIdx = i; }
+    }
+    if (maxDist > tol) {
+      keep[maxIdx] = true;
+      rdp(pts, start, maxIdx, tol, keep);
+      rdp(pts, maxIdx, end, tol, keep);
+    }
+  }
+
+  const keep = new Array(points.length).fill(false);
+  keep[0] = true;
+  keep[points.length - 1] = true;
+  rdp(points, 0, points.length - 1, tolerance, keep);
+  return points.filter((_, i) => keep[i]);
 }
 
 
@@ -125,7 +365,13 @@ function stopIfPlaying() {
 canvas.addEventListener("mousedown", (e) => {
   stopIfPlaying();
   drawing = true;
-  currentStroke = { size: brushSize, color: color, points: [] };
+  currentStroke = {
+    size: brushSize,
+    color: color,
+    points: [],
+    oldschool: oldschoolMode,
+    polygon: null
+  };
   currentStroke.points.push({
     x: e.offsetX / renderScale,
     y: e.offsetY / renderScale
@@ -142,14 +388,23 @@ canvas.addEventListener("mousemove", (e) => {
   render();
 });
 
-canvas.addEventListener("mouseup",()=>{
-
-  drawing=false;
+canvas.addEventListener("mouseup", () => {
+  drawing = false;
   ctx.beginPath();
+
+  // NEW: simplify points on mouse-up (mirrors AS3 simplifyLang call)
+  if (currentStroke && currentStroke.points.length > 2) {
+    currentStroke.points = simplifyPoints(currentStroke.points, 5);
+  }
+
+  // NEW: build oldschool polygon outline after simplification
+  if (currentStroke && currentStroke.oldschool && currentStroke.points.length >= 2) {
+    currentStroke.polygon = buildOldschoolPolygon(currentStroke.points, currentStroke.size / 2);
+  }
 
   updateThumbnail(currentFrame);
   drawFramesTimeline();
-
+  render();
 });
 
 
@@ -271,28 +526,63 @@ function updateThumbnail(frameIndex){
 
   const tctx=thumb.getContext("2d");
 
-  frames[frameIndex].strokes.forEach(stroke=>{
+  tctx.lineWidth = 1;
+  tctx.strokeStyle = "black";
+  tctx.lineCap = "round";
+  tctx.lineJoin = "round";
 
-    tctx.beginPath();
-    tctx.lineWidth=1;
-    tctx.strokeStyle="black";
+  frames[frameIndex].strokes.forEach(stroke => {
 
-    stroke.points.forEach((p,i)=>{
-
-      const x=p.x/12;
-      const y=p.y/12;
-
-      if(i===0) tctx.moveTo(x,y);
-      else tctx.lineTo(x,y);
-
-    });
-
-    tctx.stroke();
+    if (stroke.oldschool && stroke.polygon) {
+      // Draw filled polygon in thumbnail
+      const poly = stroke.polygon;
+      tctx.beginPath();
+      poly.forEach((p, i) => {
+        const x = p.x / 12;
+        const y = p.y / 12;
+        if (i === 0) tctx.moveTo(x, y);
+        else tctx.lineTo(x, y);
+      });
+      tctx.closePath();
+      tctx.fillStyle = "black";
+      tctx.fill();
+    } else {
+      // Draw spline curve in thumbnail
+      tctx.beginPath();
+      drawMulticurveRaw(tctx, stroke.points, 1 / 12, false);
+      tctx.stroke();
+    }
 
   });
 
   frameThumbs[frameIndex]=thumb;
 
+}
+
+// Helper: multicurve with a custom scale factor (used for thumbnails)
+function drawMulticurveRaw(targetCtx, points, scale, closed) {
+  if (!points || points.length === 0) return;
+  const scaled = points.map(p => ({ x: p.x * scale, y: p.y * scale }));
+  const n = scaled.length;
+  if (n === 1) return;
+  if (n === 2) {
+    targetCtx.moveTo(scaled[0].x, scaled[0].y);
+    targetCtx.lineTo(scaled[1].x, scaled[1].y);
+    return;
+  }
+  const mx = [], my = [];
+  for (let i = 1; i < n - 2; i++) {
+    mx[i] = 0.5 * (scaled[i + 1].x + scaled[i].x);
+    my[i] = 0.5 * (scaled[i + 1].y + scaled[i].y);
+  }
+  mx[0]     = scaled[0].x;
+  my[0]     = scaled[0].y;
+  mx[n - 2] = scaled[n - 1].x;
+  my[n - 2] = scaled[n - 1].y;
+  targetCtx.moveTo(mx[0], my[0]);
+  for (let i = 1; i < n - 1; i++) {
+    targetCtx.quadraticCurveTo(scaled[i].x, scaled[i].y, mx[i], my[i]);
+  }
 }
 
 
@@ -516,7 +806,7 @@ document.getElementById("btnPause").addEventListener("click", () => {
 ===================================================== */
 
 function setActiveTool(btnId) {
-  document.querySelectorAll('#btnPencil, #btnEraser, #btnEyedropper').forEach(btn => {
+  document.querySelectorAll('#btnPencil, #btnEraser, #btnEyedropper, #btnOldschool').forEach(btn => {
     btn.classList.remove('btnActive');
   });
   document.getElementById(btnId).classList.add('btnActive');
@@ -525,6 +815,7 @@ function setActiveTool(btnId) {
 document.getElementById("btnPencil").addEventListener("click", () => {
   color = "#000";
   eyedropperActive = false;
+  oldschoolMode = false;
   canvas.style.cursor = "default";
   setActiveTool("btnPencil");
 });
@@ -532,14 +823,24 @@ document.getElementById("btnPencil").addEventListener("click", () => {
 document.getElementById("btnEraser").addEventListener("click", () => {
   color = "#fff";
   eyedropperActive = false;
+  oldschoolMode = false;
   canvas.style.cursor = "default";
   setActiveTool("btnEraser");
 });
 
 document.getElementById("btnEyedropper").addEventListener("click", () => {
   eyedropperActive = !eyedropperActive;
+  oldschoolMode = false;
   canvas.style.cursor = eyedropperActive ? "crosshair" : "default";
   setActiveTool(eyedropperActive ? "btnEyedropper" : "btnPencil");
+});
+
+// NEW: Oldschool brush mode button (add id="btnOldschool" to your HTML)
+document.getElementById("btnOldschool").addEventListener("click", () => {
+  oldschoolMode = !oldschoolMode;
+  eyedropperActive = false;
+  canvas.style.cursor = "default";
+  setActiveTool(oldschoolMode ? "btnOldschool" : "btnPencil");
 });
 
 canvas.addEventListener("click", (e) => {
@@ -578,6 +879,14 @@ sizeButtons.forEach((id, i) => {
 ===================================================== */
 
 document.addEventListener("keydown",(e)=>{
+
+  // NEW: track last 3 char codes to detect the "old" sequence (mirrors AS3 lastThreeKeys)
+  lastThreeKeys[0] = lastThreeKeys[1];
+  lastThreeKeys[1] = lastThreeKeys[2];
+  lastThreeKeys[2] = e.key.charCodeAt(0);
+  if (lastThreeKeys[0] === 111 && lastThreeKeys[1] === 108 && lastThreeKeys[2] === 100) {
+    document.getElementById("btnOldschool").click();
+  }
 
   switch(e.key.toLowerCase()){
 
@@ -718,7 +1027,6 @@ async function loadContinue() {
   const continueId = params.get('continue');
   if (!continueId) return;
 
-  // Store the ID so save.js can update instead of insert
   window.CONTINUE_ID = continueId;
 
   const { data, error } = await db
@@ -732,12 +1040,10 @@ async function loadContinue() {
     return;
   }
 
-  // Populate frames
   frames = Array.isArray(data.frames)
     ? data.frames
     : (data.frames ? Object.values(data.frames) : [{ strokes: [] }]);
 
-  // Rebuild thumbnails
   frameThumbs = [];
   frames.forEach((_, i) => updateThumbnail(i));
 
@@ -748,7 +1054,6 @@ async function loadContinue() {
   render();
   drawFramesTimeline();
 
-  // Pre-fill save dialog fields if they exist
   const nameEl = document.getElementById('saveDialogName');
   const descEl = document.getElementById('saveDialogDesc');
   const kwEl = document.getElementById('saveDialogKeywords');
