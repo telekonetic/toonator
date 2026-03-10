@@ -20,6 +20,53 @@
   const rand = n => Math.random() * n;
 
   /* =====================================================
+     COMPACT STROKE DESERIALIZATION
+     Compact format (saved by save.js):
+       frame.strokes = [
+         ["#000|2|0|0", [[x,y],[x,y],...], [[px,py],...] | null],
+         ...
+       ]
+     Header fields: color|size|eraser(0/1)|oldschool(0/1)
+     Element [1] = points array (may be flat pairs or {x,y} objects)
+     Element [2] = polygon array or absent/null (oldschool only)
+
+     Full (legacy) format: array of stroke objects — passed through unchanged.
+  ===================================================== */
+  function deserializeStrokes(rawStrokes) {
+    if (!rawStrokes || rawStrokes.length === 0) return [];
+
+    return rawStrokes.map(s => {
+      // Already a full object (legacy save)
+      if (s && typeof s === 'object' && !Array.isArray(s)) return s;
+
+      // Compact array: [header, points, polygon?]
+      if (Array.isArray(s)) {
+        const [header, rawPoints, rawPolygon] = s;
+        const parts = (header || '').split('|');
+        const color      = parts[0] || '#000';
+        const size       = parseFloat(parts[1]) || 2;
+        const eraser     = parts[2] === '1';
+        const oldschool  = parts[3] === '1';
+
+        // Points: accept [[x,y],...] or [{x,y},...]
+        const points = (rawPoints || []).map(p =>
+          Array.isArray(p) ? { x: p[0], y: p[1] } : p
+        );
+
+        // Polygon: same dual format
+        const polygon = rawPolygon
+          ? rawPolygon.map(p => Array.isArray(p) ? { x: p[0], y: p[1] } : p)
+          : null;
+
+        return { color, size, eraser, oldschool, points, polygon };
+      }
+
+      // Unknown — skip
+      return null;
+    }).filter(Boolean);
+  }
+
+  /* =====================================================
      MULTICURVE — ported from AS3 FrameV1/FrameV2
   ===================================================== */
   function drawMulticurve(ctx, points, scale, closed) {
@@ -48,35 +95,60 @@
 
   /* =====================================================
      STROKE RENDERER
+     Handles eraser strokes via destination-out composite.
+     Eraser strokes are drawn as filled/stroked shapes that
+     punch through to transparency, exactly as in the editor.
   ===================================================== */
   function drawStroke(ctx, stroke, scale) {
     const s = scale || 1;
     if (!stroke.points || stroke.points.length === 0) return;
+
+    // Set composite mode — eraser punches out pixels
+    ctx.globalCompositeOperation = stroke.eraser ? 'destination-out' : 'source-over';
+
     if (stroke.oldschool && stroke.polygon && stroke.polygon.length > 0) {
       ctx.beginPath();
       stroke.polygon.forEach((p, i) => i === 0 ? ctx.moveTo(p.x*s, p.y*s) : ctx.lineTo(p.x*s, p.y*s));
-      ctx.closePath(); ctx.fillStyle = stroke.color || '#000'; ctx.fill();
+      ctx.closePath();
+      ctx.fillStyle = stroke.eraser ? 'rgba(0,0,0,1)' : (stroke.color || '#000');
+      ctx.fill();
+      // Reset composite immediately after eraser fill
+      ctx.globalCompositeOperation = 'source-over';
       return;
     }
+
     const color = stroke.color || '#000';
     const size  = (stroke.size || 2) * s;
+
     if (stroke.points.length === 1) {
       ctx.beginPath();
       ctx.arc(stroke.points[0].x*s, stroke.points[0].y*s, size/2, 0, Math.PI*2);
-      ctx.fillStyle = color; ctx.fill(); return;
+      // Eraser dot — any opaque color works with destination-out
+      ctx.fillStyle = stroke.eraser ? 'rgba(0,0,0,1)' : color;
+      ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+      return;
     }
+
     ctx.beginPath();
-    ctx.strokeStyle = color; ctx.lineWidth = size;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    // Eraser stroke color doesn't matter visually — destination-out uses alpha only
+    ctx.strokeStyle = stroke.eraser ? 'rgba(0,0,0,1)' : color;
+    ctx.lineWidth  = size;
+    ctx.lineCap    = 'round';
+    ctx.lineJoin   = 'round';
     drawMulticurve(ctx, stroke.points, s, false);
     ctx.stroke();
+
+    // Always reset composite after each stroke
+    ctx.globalCompositeOperation = 'source-over';
   }
 
   function renderFrameStrokes(ctx, frame, scale, strokeLimit) {
     if (!frame || !frame.strokes) return;
+    const strokes = deserializeStrokes(frame.strokes);
     const limit = (strokeLimit === undefined || strokeLimit < 0)
-      ? frame.strokes.length : Math.min(strokeLimit + 1, frame.strokes.length);
-    for (let i = 0; i < limit; i++) drawStroke(ctx, frame.strokes[i], scale);
+      ? strokes.length : Math.min(strokeLimit + 1, strokes.length);
+    for (let i = 0; i < limit; i++) drawStroke(ctx, strokes[i], scale);
   }
 
   /* =====================================================
@@ -88,10 +160,8 @@
   ===================================================== */
 
   // Bar — exact port of ToolbarToon.repaintBar()
-  // bar.x = placeRect.x + 10, barWidth = placeRect.width - 20
-  // drawn at local y=20, fills 2px high (thin strip)
   function paintBar(ctx, x, barWidth) {
-    const y    = 20;  // matches AS3 _loc5_ = 20
+    const y    = 20;
     const w    = barWidth;
     const nSeg = Math.floor(w / 30);
 
@@ -99,12 +169,10 @@
     ctx.beginPath();
     ctx.moveTo(x, y);
 
-    // Top wobbly edge (left→right)
     for (let i = 1; i < nSeg - 1; i++)
       ctx.lineTo(x + i*30 + rand(10) - 5, y - rand(2));
     ctx.lineTo(x + w, y);
 
-    // Bottom wobbly edge (right→left)
     for (let i = nSeg - 1; i >= 1; i--)
       ctx.lineTo(x + i*30 + rand(10) - 5, y + 1 + rand(2));
 
@@ -113,9 +181,6 @@
   }
 
   // Slider — exact port of ToolbarToon.repaintSlider()
-  // Two concentric wobbly circles at (cx, cy)
-  // Outer: black, r≈8+rand(1), step PI/8
-  // Inner: white, r≈6+rand(1), step PI/6
   function paintSlider(ctx, cx, cy) {
     ctx.fillStyle = '#000';
     ctx.beginPath();
@@ -136,8 +201,7 @@
     ctx.closePath(); ctx.fill();
   }
 
-  // Play button — exact port of Button.repaint() mode=1 (shows play ▶)
-  // 30×30 hit area, drawn in black
+  // Play button
   function paintPlayIcon(ctx, x, y) {
     ctx.fillStyle = '#000';
     ctx.beginPath();
@@ -149,7 +213,7 @@
     ctx.closePath(); ctx.fill();
   }
 
-  // Pause button — exact port of Button.repaint() mode=0 (shows pause ‖)
+  // Pause button
   function paintPauseIcon(ctx, x, y) {
     ctx.fillStyle = '#000';
     for (let i = 0; i < 2; i++) {
@@ -173,31 +237,20 @@
     const fps        = cfg.playFPS || 10;
     const frameDelay = Math.round(1000 / fps);
 
-    // AS3 dimensions
     const MOVIE_W = 600, MOVIE_H = 300;
-    // Toolbar: AS3 _width=610, height=40
     const TB_W = 610, TB_H = 40;
 
     const frameCount = frames.length || 1;
     const oneFrame   = frameCount === 1;
-    const totalSteps = oneFrame ? (frames[0].strokes || []).length : frameCount;
-    const showBar    = totalSteps >= 10;  // AS3: hide bar if total < 10
+    const totalSteps = oneFrame
+      ? deserializeStrokes(frames[0].strokes || []).length
+      : frameCount;
+    const showBar    = totalSteps >= 10;
 
-    /* ---- Toolbar layout ----
-       RIGHT: logo (width≈62, margin 5)
-       LEFT:  play/pause button (width=30, margin 5)
-       Remaining centre → scrub bar + slider at y=20
-    ---- */
     const LOGO_W  = 90;
-
-    // Right side
     const LOGO_X  = TB_W - LOGO_W - 8;
-
-    // Left side
     const BTN_X   = 5;
     const BTN_W   = 30;
-
-    // Bar fills the space between button and logo
     const BAR_X   = BTN_X + BTN_W + 14;
     const BAR_W   = Math.max(10, LOGO_X - BAR_X - 10);
     const BAR_Y   = 20;
@@ -212,7 +265,6 @@
       'box-sizing:border-box',
     ].join(';');
 
-    // Toon canvas — plain white, no border logic needed
     const borderCanvas = document.createElement('canvas');
     borderCanvas.width  = MOVIE_W;
     borderCanvas.height = MOVIE_H;
@@ -222,7 +274,6 @@
       'cursor:pointer', 'background:#fff',
     ].join(';');
 
-    // Toolbar canvas
     const tbCanvas = document.createElement('canvas');
     tbCanvas.width  = TB_W;
     tbCanvas.height = TB_H;
@@ -254,7 +305,7 @@
       else          renderFrameStrokes(bCtx, frames[curFrame], 1, -1);
     }
 
-    /* ---- Preload Toonator logo SVG from /img/toonator.svg ---- */
+    /* ---- Logo ---- */
     const logoImg = new Image();
     logoImg.src = '/img/toonator.svg';
     logoImg.onload = () => renderToolbar();
@@ -265,24 +316,20 @@
       tbCtx.fillStyle = '#fff';
       tbCtx.fillRect(0, 0, TB_W, TB_H);
 
-      // Play/Pause button at x=BTN_X, vertically centred (30×30 → y=5)
       if (playing) paintPauseIcon(tbCtx, BTN_X, 5);
       else         paintPlayIcon(tbCtx,  BTN_X, 5);
 
-      // Scrub bar + slider (hidden if totalSteps < 10)
       if (showBar) {
         paintBar(tbCtx, BAR_X, BAR_W);
         paintSlider(tbCtx, BAR_X + sliderRatio * BAR_W, BAR_Y);
       }
 
-      // Logo — /img/toonator.svg native 155×22, scaled to 90px wide keeping aspect ratio
       if (logoImg.complete && logoImg.naturalWidth > 0) {
-        const lw = 90, lh = Math.round(90 * 22 / 155); // ≈13px
+        const lw = 90, lh = Math.round(90 * 22 / 155);
         tbCtx.drawImage(logoImg, LOGO_X, Math.round(TB_H/2 - lh/2), lw, lh);
       }
     }
 
-    /* ---- 100ms jitter interval — mirrors AS3 ENTER_FRAME at 10fps ---- */
     const tbTimer = setInterval(renderToolbar, 100);
 
     /* ---- Slider sync ---- */
@@ -298,8 +345,9 @@
     }
 
     function tickOneFrame() {
+      const deserialized = deserializeStrokes(frames[0].strokes || []);
       const next  = lastShownStroke + 1;
-      const total = (frames[0].strokes || []).length;
+      const total = deserialized.length;
       if (next >= total) {
         stopPlay(); lastShownStroke = total - 1; renderToon(); syncSlider(); return;
       }
@@ -309,7 +357,8 @@
     function startPlay() {
       if (playing) return;
       if (oneFrame) {
-        if (lastShownStroke >= (frames[0].strokes || []).length - 1) lastShownStroke = -1;
+        const deserialized = deserializeStrokes(frames[0].strokes || []);
+        if (lastShownStroke >= deserialized.length - 1) lastShownStroke = -1;
       }
       playing = true;
       animTimer = setInterval(oneFrame ? tickOneFrame : tickMulti, frameDelay);
@@ -363,14 +412,17 @@
 
     borderCanvas.addEventListener('click', () => { if (playing) stopPlay(); else startPlay(); });
 
-    /* ---- Init — mirrors AS3 checkComplete → showPosition(0) ---- */
-    if (oneFrame) lastShownStroke = (frames[0].strokes || []).length - 1;
-    else          curFrame = 0;
+    /* ---- Init ---- */
+    if (oneFrame) {
+      const deserialized = deserializeStrokes(frames[0].strokes || []);
+      lastShownStroke = deserialized.length - 1;
+    } else {
+      curFrame = 0;
+    }
     syncSlider();
     renderToon();
     renderToolbar();
 
-    // Auto-play multi-frame (mirrors AS3: if (!isPaused) play())
     if (frameCount > 1) startPlay();
 
     /* ---- Public API ---- */
