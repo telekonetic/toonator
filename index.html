@@ -36,17 +36,17 @@
   <div id="content">
 
     <div class="content_left">
-      <b>Most popular toons</b>
+      <b>Популярные мульты</b>
       <div class="toons_container">
         <div class="toons_list" id="popular-list">
-          <div style="text-align:center;color:#888;padding:20px;">Loading...</div>
+          <div style="text-align:center;color:#888;padding:20px;">Загрузка...</div>
         </div>
       </div>
 
-      <b>Newest toons</b>
+      <b>Самые новые мульты</b>
       <div class="toons_container">
         <div class="toons_list" id="newest-list">
-          <div style="text-align:center;color:#888;padding:20px;">Loading...</div>
+          <div style="text-align:center;color:#888;padding:20px;">Загрузка...</div>
         </div>
       </div>
     </div>
@@ -56,7 +56,7 @@
       <img src="/img/toonator320.png"/>
       <div>Toonator is online cartoon editing tool.<br/>With Toonator you can easily make funny animations.</div>
 
-      <h1><a href="/goodplace/">Good Place</a></h1>
+      <h1><a href="/goodplace/">Козырное место</a></h1>
       <div id="good-place-toon"></div>
     </div>
 
@@ -122,9 +122,9 @@
       ? toon.frames
       : (toon.frames ? Object.values(toon.frames) : []);
     const frameCount = frames.length;
-    const frameStr = frameCount >= 50 ? `<b>${frameCount}</b> frames` : `${frameCount} frames`;
-    const commentStr = `<span class="grayb">No comments</span>`;
-    const title = escapeHTML(toon.title || 'Untitled');
+    const frameStr = frameCount >= 50 ? `<b>${frameCount}</b> кадров` : `${frameCount} кадров`;
+    const commentStr = `<span class="grayb">Нет комментариев</span>`;
+    const title = escapeHTML(toon.title || 'Без названия');
 
     return `
       <div class="toon_preview owned">
@@ -161,7 +161,7 @@
     );
     const list = document.getElementById('popular-list');
     if (!toons || toons.length === 0) {
-      list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>';
+      list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">Нет мультов.</div>';
       return;
     }
     const userMap = await resolveUsernames(toons);
@@ -174,7 +174,7 @@
     );
     const list = document.getElementById('newest-list');
     if (!toons || toons.length === 0) {
-      list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>';
+      list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">Нет мультов.</div>';
       return;
     }
     const userMap = await resolveUsernames(toons);
