@@ -80,52 +80,6 @@
   }
 
   /* =====================================================
-     BORDER — exact port of Player.repaintBack()
-
-     AS3 draws on the Player MovieClip's own graphics,
-     which is 610px wide (stage). The toon sprite sits
-     at x=5, y=5 inside it.
-
-     Steps:
-       Top:    t 0→1 step 0.05, x = t*(width+10), y = rand(3)
-       Right:  t 0→1 step 0.1,  x = width+8+rand(3), y = t*(height+8)
-       Bottom: t 1→0 step 0.05, x = t*(width+8), y = height+8+rand(3)
-       Left:   t 1→0 step 0.1,  x = rand(3), y = t*(height+8)
-       White rect at (5, 5, width, height)
-  ===================================================== */
-  function paintBorder(ctx, width, height) {
-    ctx.clearRect(0, 0, width + 14, height + 14);
-
-    ctx.fillStyle = '#000';
-    ctx.beginPath();
-
-    // Top edge
-    let t = 0;
-    ctx.moveTo(t * (width + 10), rand(3));
-    for (t = 0.05; t <= 1; t += 0.05)
-      ctx.lineTo(t * (width + 10), rand(3));
-
-    // Right edge
-    for (t = 0; t <= 1; t += 0.1)
-      ctx.lineTo(width + 8 + rand(3), t * (height + 8));
-
-    // Bottom edge
-    for (t = 1; t >= 0; t -= 0.05)
-      ctx.lineTo(t * (width + 8), height + 8 + rand(3));
-
-    // Left edge
-    for (t = 1; t >= 0; t -= 0.1)
-      ctx.lineTo(rand(3), t * (height + 8));
-
-    ctx.closePath();
-    ctx.fill();
-
-    // White inner rect — drawRect(5, 5, _width, _height)
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(5, 5, width, height);
-  }
-
-  /* =====================================================
      TOOLBAR PAINTERS
      All coordinates match AS3 exactly.
      Bar and slider are at y=20 (vertical centre of 40px toolbar).
@@ -249,9 +203,6 @@
 
     // AS3 dimensions
     const MOVIE_W = 600, MOVIE_H = 300;
-    // Border canvas: playerSprite sits at x=5,y=5, border wobbles ~8px outside
-    const BORDER_W = MOVIE_W + 14;  // 600 + 5 left + ~9 right wobble
-    const BORDER_H = MOVIE_H + 14;  // 300 + 5 top  + ~9 bottom wobble
     // Toolbar: AS3 _width=610, height=40
     const TB_W = 610, TB_H = 40;
 
@@ -292,16 +243,22 @@
 
     /* ---- DOM ---- */
     root.innerHTML = '';
-    root.style.cssText = 'display:inline-block;line-height:0;font-size:0;';
+    root.style.cssText = [
+      'display:inline-block',
+      'line-height:0',
+      'font-size:0',
+      'border:2px solid #000',
+      'box-sizing:border-box',
+    ].join(';');
 
-    // Border + toon canvas
+    // Toon canvas — plain white, no border logic needed
     const borderCanvas = document.createElement('canvas');
-    borderCanvas.width  = BORDER_W;
-    borderCanvas.height = BORDER_H;
+    borderCanvas.width  = MOVIE_W;
+    borderCanvas.height = MOVIE_H;
     borderCanvas.style.cssText = [
       'display:block', 'width:100%',
-      'max-width:' + BORDER_W + 'px',
-      'cursor:pointer', 'background:#000',
+      'max-width:' + MOVIE_W + 'px',
+      'cursor:pointer', 'background:#fff',
     ].join(';');
 
     // Toolbar canvas
@@ -330,17 +287,9 @@
 
     /* ---- Render toon ---- */
     function renderToon() {
-      // Repaint wobbly border (jitters every call)
-      paintBorder(bCtx, MOVIE_W, MOVIE_H);
-      // Draw toon inside the white rect at (5,5)
-      bCtx.save();
-      bCtx.beginPath();
-      bCtx.rect(5, 5, MOVIE_W, MOVIE_H);
-      bCtx.clip();
-      bCtx.translate(5, 5);
+      bCtx.clearRect(0, 0, MOVIE_W, MOVIE_H);
       if (oneFrame) renderFrameStrokes(bCtx, frames[0], 1, lastShownStroke);
       else          renderFrameStrokes(bCtx, frames[curFrame], 1, -1);
-      bCtx.restore();
     }
 
     /* ---- Render toolbar ---- */
