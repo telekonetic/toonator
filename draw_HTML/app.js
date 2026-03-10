@@ -327,6 +327,8 @@ function buildOldschoolPolygon(points, halfWidth) {
 function drawOldschoolStroke(targetCtx, stroke) {
   if (!stroke.polygon || stroke.polygon.length === 0) return;
   const poly = stroke.polygon;
+  
+  // Use multiple operations to ensure smooth filling
   targetCtx.beginPath();
   poly.forEach((p, i) => {
     const x = p.x * renderScale;
@@ -337,6 +339,20 @@ function drawOldschoolStroke(targetCtx, stroke) {
   targetCtx.closePath();
   targetCtx.fillStyle = stroke.color;
   targetCtx.fill();
+  
+  // Also stroke the centerline to fill any gaps
+  targetCtx.beginPath();
+  targetCtx.lineWidth = stroke.size * renderScale;
+  targetCtx.strokeStyle = stroke.color;
+  targetCtx.lineCap = "round";
+  targetCtx.lineJoin = "round";
+  stroke.points.forEach((p, i) => {
+    const x = p.x * renderScale;
+    const y = p.y * renderScale;
+    if (i === 0) targetCtx.moveTo(x, y);
+    else targetCtx.lineTo(x, y);
+  });
+  targetCtx.stroke();
 }
 
 
