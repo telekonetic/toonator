@@ -1473,3 +1473,7 @@ ul.leftmenu li a.selected {
     padding: 10px;
     height: auto;
 }
+
+.username.russian {
+  color: #050 !important;
+}
