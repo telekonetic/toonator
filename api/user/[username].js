@@ -1,13 +1,11 @@
-export async function onRequestGet(context) {
-  const { username } = context.params;
-  const decodedUsername = decodeURIComponent(username); // ← add this
-  const url = new URL(context.request.url);
-  const page = parseInt(url.searchParams.get('page') || '1');
+export default async function handler(req, res) {
+  const { username, page: pageParam } = req.query;
+  const decodedUsername = decodeURIComponent(username);
+  const page = parseInt(pageParam || '1');
 
-  const html = getProfileHTML(decodedUsername, page); // ← use decoded
-  return new Response(html, {
-    headers: { 'Content-Type': 'text/html;charset=UTF-8' }
-  });
+  const html = getProfileHTML(decodedUsername, page);
+  res.setHeader('Content-Type', 'text/html;charset=UTF-8');
+  res.send(html);
 }
 
 function getProfileHTML(username, page) {
@@ -111,31 +109,16 @@ async function loadProfile() {
 
   const userId = profile[0].id;
 
-  // Count total toons
-  const { count } = await db
-    .from('animations')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
+  const { count } = await db.from('animations').select('*', { count: 'exact', head: true }).eq('user_id', userId);
   const totalToons = count || 0;
   document.getElementById('stat_toons').textContent = totalToons;
 
-  // Count total comments
-  const { count: commentCount } = await db
-    .from('comments')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
+  const { count: commentCount } = await db.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', userId);
   document.getElementById('stat_comments').textContent = commentCount || 0;
 
-  // Check logged in user
   const { data: { user: currentUser } } = await db.auth.getUser();
-  console.log('currentUser metadata:', currentUser?.user_metadata);
-  console.log('profile avatar_toon:', profile[0].avatar_toon);
-  const isOwnProfile = currentUser &&
-    (currentUser.user_metadata?.username === PROFILE_USERNAME);
+  const isOwnProfile = currentUser && (currentUser.user_metadata?.username === PROFILE_USERNAME);
 
-  // Set avatar
   const avatarEl = document.getElementById('profile_avatar');
   const avatarToon = isOwnProfile
     ? (currentUser?.user_metadata?.avatar_toon || profile[0].avatar_toon)
@@ -145,23 +128,14 @@ async function loadProfile() {
     avatarEl.src = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co/storage/v1/object/public/previews/' + avatarToon + '_100.gif';
   }
   avatarEl.onerror = () => { avatarEl.src = '/img/avatar100.gif'; };
-  if (isOwnProfile) {
-    // Change avatar link — only on your own profile
-    avatarEl.insertAdjacentHTML('afterend',
-      '<br/><a href="#" onclick="changeAvatar(); return false;" style="font-size:9pt;">[Change avatar]</a>'
-    );
 
-    // Total drafts — only on your own profile
-    const { count: draftCount } = await db
-      .from('animations')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('draft', true);
+  if (isOwnProfile) {
+    avatarEl.insertAdjacentHTML('afterend', '<br/><a href="#" onclick="changeAvatar(); return false;" style="font-size:9pt;">[Change avatar]</a>');
+    const { count: draftCount } = await db.from('animations').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('draft', true);
     document.getElementById('stat_drafts_row').style.display = '';
     document.getElementById('stat_drafts').textContent = draftCount || 0;
   }
 
-  // Private messages — show on anyone else's profile, hidden on your own
   if (currentUser && !isOwnProfile) {
     const pmLink = document.getElementById('private_messages_link');
     pmLink.href = '/messages/' + PROFILE_USERNAME + '/';
@@ -171,25 +145,13 @@ async function loadProfile() {
   const totalPages = Math.ceil(totalToons / PER_PAGE);
   const offset = (CURRENT_PAGE - 1) * PER_PAGE;
 
-  // Fetch toons for this page
-  const { data: toons } = await db
-    .from('animations')
-    .select('id, title, frames, created_at')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + PER_PAGE - 1);
+  const { data: toons } = await db.from('animations').select('id, title, frames, created_at').eq('user_id', userId).order('created_at', { ascending: false }).range(offset, offset + PER_PAGE - 1);
 
-  // Fetch comment counts for these toons
   const toonIds = (toons || []).map(t => t.id);
   let commentCounts = {};
   if (toonIds.length > 0) {
-    const { data: counts } = await db
-      .from('comments')
-      .select('animation_id')
-      .in('animation_id', toonIds);
-    (counts || []).forEach(c => {
-      commentCounts[c.animation_id] = (commentCounts[c.animation_id] || 0) + 1;
-    });
+    const { data: counts } = await db.from('comments').select('animation_id').in('animation_id', toonIds);
+    (counts || []).forEach(c => { commentCounts[c.animation_id] = (commentCounts[c.animation_id] || 0) + 1; });
   }
 
   renderToons(toons || [], commentCounts);
@@ -203,7 +165,6 @@ function renderToons(toons, commentCounts) {
     list.innerHTML = '<p style="color:#888888;font-size:10pt;padding:10px 0;">No toons yet.</p>';
     return;
   }
-
   list.innerHTML = toons.map(toon => {
     const frames = Array.isArray(toon.frames) ? toon.frames : (toon.frames ? Object.values(toon.frames) : []);
     const frameCount = frames.length || 1;
@@ -211,13 +172,10 @@ function renderToons(toons, commentCounts) {
     const frameLabel = frameCount === 1 ? '1 frame' : '<b>' + frameCount + '</b> frames';
     const cc = commentCounts[toon.id] || 0;
     const commentLabel = cc === 0 ? '<span class="grayb">No comments</span>' : '<b>' + cc + '</b> comment' + (cc === 1 ? '' : 's');
-
     return '<div class="toon_preview toon_preview_' + toon.id + '">' +
-      '<div class="toon_image">' +
-        '<a href="/toon/' + toon.id + '" title="' + title + '">' +
-          '<img src="https://ytyhhmwnnlkhhpvsurlm.supabase.co/storage/v1/object/public/previews/' + toon.id + '_100.gif" width="200" height="100" alt="' + title + '"/>' +
-        '</a>' +
-      '</div>' +
+      '<div class="toon_image"><a href="/toon/' + toon.id + '" title="' + title + '">' +
+        '<img src="https://ytyhhmwnnlkhhpvsurlm.supabase.co/storage/v1/object/public/previews/' + toon.id + '_100.gif" width="200" height="100" alt="' + title + '"/>' +
+      '</a></div>' +
       '<div class="toon_name"><a class="link" href="/toon/' + toon.id + '">' + title + '</a></div>' +
       '<div class="toon_tagline">' + frameLabel + '</div>' +
       '<div class="toon_tagline">' + commentLabel + '</div>' +
@@ -238,30 +196,17 @@ function renderPaginator(totalPages, containerId) {
       items += '<li><a href="/user/' + PROFILE_USERNAME + '/' + i + '/">' + i + '</a></li>';
     }
   }
-  if (totalPages > maxShow) {
-    items += '<li class="dots">...</li>';
-  }
+  if (totalPages > maxShow) items += '<li class="dots">...</li>';
   container.innerHTML = '<div class="paginator"><ul class="paginator">' + items + '</ul><div style="clear:both"></div></div>';
 }
 
 async function changeAvatar() {
   const toonId = prompt('Enter toon ID to use as avatar:');
   if (!toonId) return;
-
-  const { error: authError } = await db.auth.updateUser({
-    data: { avatar_toon: toonId }
-  });
-  console.log('auth update error:', authError);
-
-  const { error: profileError } = await db
-    .from('profiles')
-    .update({ avatar_toon: toonId })
-    .eq('username', PROFILE_USERNAME);
-  console.log('profile update error:', profileError);
-
+  const { error: authError } = await db.auth.updateUser({ data: { avatar_toon: toonId } });
+  const { error: profileError } = await db.from('profiles').update({ avatar_toon: toonId }).eq('username', PROFILE_USERNAME);
   if (!authError && !profileError) {
-    document.getElementById('profile_avatar').src =
-      'https://ytyhhmwnnlkhhpvsurlm.supabase.co/storage/v1/object/public/previews/' + toonId + '_100.gif';
+    document.getElementById('profile_avatar').src = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co/storage/v1/object/public/previews/' + toonId + '_100.gif';
   } else {
     alert('Error saving avatar: ' + (authError?.message || profileError?.message));
   }
