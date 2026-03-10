@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Toonator.com - Make animation online!</title>
+  <title>Мультатор. Нарисовать мультфильм. Анимация онлайн.</title>
   <link rel="shortcut icon" href="/img/favicon-eyes.png"/>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/css/font.css">
-  <link rel="stylesheet" href="/css/images.css">
+  <link rel="stylesheet" href="/css/images_ru.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const { createClient } = supabase;
@@ -20,52 +20,45 @@
   <meta name="title" content="Toonator">
   <meta name="description" content="Toonator is online cartoon editing tool.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://toonator.pages.dev">
-  <meta property="og:title" content="Toonator">
-  <meta property="og:description" content="Toonator is online cartoon editing tool.">
-  <meta property="og:image" content="/img/toonator320.png">
+  <meta property="og:url" content="https://multator.site">
+  <meta property="og:title" content="Мультатор">
+  <meta property="og:description" content="Мультатор - это онлайн-редактор мультиков.">
+  <meta property="og:image" content="/img/multator.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Toonator">
-  <meta name="twitter:description" content="Toonator is online cartoon editing tool.">
-  <meta name="twitter:image" content="/img/toonator40.png">
+  <meta name="twitter:title" content="Мультатор">
+  <meta name="twitter:description" content="Мультатор - это онлайн-редактор мультиков.">
+  <meta property="og:image" content="/img/multator.png">
 </head>
 <body>
 <div id="donate_placeholder"></div>
 <div id="header_placeholder"></div>
-
 <div id="content_wrap">
   <div id="content">
-
     <div class="content_left">
-      <b>Most popular toons</b>
+      <b>Популярные мульты</b>
       <div class="toons_container">
         <div class="toons_list" id="popular-list">
-          <div style="text-align:center;color:#888;padding:20px;">Loading...</div>
+          <div style="text-align:center;color:#888;padding:20px;">Загрузка...</div>
         </div>
       </div>
-
-      <b>Newest toons</b>
+      <b>Самые новые мульты</b>
       <div class="toons_container">
         <div class="toons_list" id="newest-list">
-          <div style="text-align:center;color:#888;padding:20px;">Loading...</div>
+          <div style="text-align:center;color:#888;padding:20px;">Загрузка...</div>
         </div>
       </div>
     </div>
-
     <div class="content_right">
       <br/>
-      <img src="/img/toonator320.png"/>
-      <div>Toonator is online cartoon editing tool.<br/>With Toonator you can easily make funny animations.</div>
-
-      <h1><a href="/goodplace/">Good Place</a></h1>
+      <img src="/img/multator.png"/>
+      <div>Мультатор - это онлайн-редактор мультиков. С помощью нашего проекта вы легко можете нарисовать мультфильм, независимо от вашего мастерства.</div>
+      <h1><a href="/goodplace/">Козырное место</a></h1>
       <div id="good-place-toon"></div>
     </div>
-
     <div class="clear"></div>
   </div>
   <div id="footer_placeholder"></div>
 </div>
-
 <script>
   const SUPABASE_URL = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0';
@@ -114,6 +107,7 @@
     const frameStr = frameCount >= 50 ? `<b>${frameCount}</b> frames` : `${frameCount} frames`;
     const commentStr = `<span class="grayb">No comments</span>`;
     const title = escapeHTML(toon.title || 'Untitled');
+
     return `
       <div class="toon_preview owned">
         <div class="toon_image">
@@ -144,7 +138,10 @@
   async function loadPopular() {
     const toons = await apiFetch('/animations?select=id,title,user_id,frames,likes&order=likes.desc.nullslast&limit=6');
     const list = document.getElementById('popular-list');
-    if (!toons || toons.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>'; return; }
+    if (!toons || toons.length === 0) {
+      list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>';
+      return;
+    }
     const userMap = await resolveUsernames(toons);
     list.innerHTML = toons.map(t => toonCardHTML(t, userMap[t.user_id] || 'unknown')).join('');
   }
@@ -152,7 +149,10 @@
   async function loadNewest() {
     const toons = await apiFetch('/animations?select=id,title,user_id,frames,likes&order=created_at.desc&limit=6');
     const list = document.getElementById('newest-list');
-    if (!toons || toons.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>'; return; }
+    if (!toons || toons.length === 0) {
+      list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>';
+      return;
+    }
     const userMap = await resolveUsernames(toons);
     list.innerHTML = toons.map(t => toonCardHTML(t, userMap[t.user_id] || 'unknown')).join('');
   }
@@ -161,6 +161,8 @@
     // TODO: implement Good Place feature
   }
 
+
+  // kick everything off
   loadIncludes();
   loadPopular();
   loadNewest();

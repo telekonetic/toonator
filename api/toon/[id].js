@@ -1,7 +1,4 @@
-const SUPABASE_URL = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0';
-
-async function supabase(path, options = {}) {
+async function supabaseRequest(path, options = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
     ...options,
     headers: {
@@ -29,6 +26,10 @@ async function rpc(fn, params) {
   return res.json();
 }
 
+// Shared config — keep in sync with /js/config.js
+const SUPABASE_URL = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0';
+
 function formatDate(iso) {
   const d = new Date(iso);
   const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -40,7 +41,8 @@ function formatDate(iso) {
 }
 
 export default async function handler(req, res) {
-  const { id } = req.query;
+  const { id: rawId } = req.query;
+  const id = (rawId || '').toString().replace(/\/+$/, '');
 
   if (!id) return res.status(404).send('Not found');
 
@@ -51,11 +53,13 @@ export default async function handler(req, res) {
 
   let authorUsername = 'unknown';
   let authorAvatar = '/img/avatar100.gif';
+  let authorRussian = false;
 
   if (toon.user_id) {
     const userData = await rpc('get_user_by_id', { p_user_id: toon.user_id });
     if (userData && userData.length > 0) {
       authorUsername = userData[0].username || 'unknown';
+      authorRussian = userData[0].russian || false;
       const avatarToonId = userData[0].avatar_toon_id || userData[0].avatar_toon || null;
       if (avatarToonId) {
         authorAvatar = `${SUPABASE_URL}/storage/v1/object/public/previews/${avatarToonId}_100.gif`;
@@ -63,21 +67,28 @@ export default async function handler(req, res) {
     }
   }
 
+  const authorRussianClass = authorRussian ? ' russian' : '';
+
   let continuedFromHtml = '';
   if (toon.continued_from) {
-    const origToons = await supabase(`/animations?id=eq.${toon.continued_from}&select=id,title,user_id`);
+    const origToons = await supabaseRequest(`/animations?id=eq.${toon.continued_from}&select=id,title,user_id`);
     if (origToons && origToons.length > 0) {
       const orig = origToons[0];
       let origAuthor = 'unknown';
+      let origAuthorRussian = false;
       if (orig.user_id) {
         const origUser = await rpc('get_user_by_id', { p_user_id: orig.user_id });
-        if (origUser && origUser.length > 0) origAuthor = origUser[0].username || 'unknown';
+        if (origUser && origUser.length > 0) {
+          origAuthor = origUser[0].username || 'unknown';
+          origAuthorRussian = origUser[0].russian || false;
+        }
       }
+      const origAuthorRussianClass = origAuthorRussian ? ' russian' : '';
       const origTitle = orig.title || 'Untitled';
       continuedFromHtml = `<div style="font-size:9pt; margin-top:5px;">
         Original: <a href="/toon/${orig.id}" class="noh" title="${origTitle} (${origAuthor})">
           &#x25ce; ${origTitle}
-        </a> by <a href="/user/${origAuthor}" class="username foreign">${origAuthor}</a>
+        </a> by <a href="/user/${origAuthor}" class="username foreign${origAuthorRussianClass}">${origAuthor}</a>
       </div>`;
     }
   }
@@ -103,30 +114,28 @@ export default async function handler(req, res) {
   <title>${title} - Toonator.com - Draw animation online!</title>
   <link rel="shortcut icon" href="/img/favicon-eyes.png"/>
   <link href="/css/font.css" type="text/css" rel="stylesheet"/>
-  <link href="/css/images.css" type="text/css" rel="stylesheet"/>
+  <link href="/css/images_ru.css" type="text/css" rel="stylesheet"/>
   <link href="/style.css" type="text/css" rel="stylesheet"/>
   <meta property="og:title" content="${title} - Toonator. Draw animation yourself!"/>
   <meta property="og:description" content="${description || title}"/>
   <meta property="og:image" content="${previewUrl}"/>
   <meta property="og:url" content="https://toonator.site/toon/${id}"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const SUPABASE_URL = '${SUPABASE_URL}';
-    const SUPABASE_KEY = '${SUPABASE_ANON_KEY}';
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  </script>
+  <script src="/js/config.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/toon-player.js"></script>
   <script src="/js/russian-users.js"></script>
   <script>
     async function loadIncludes() {
-      const header = await fetch('/includes/header.html').then(r => r.text());
-      const footer = await fetch('/includes/footer.html').then(r => r.text());
-      const donate = await fetch('/includes/donate.html').then(r => r.text());
-      const modal  = await fetch('/includes/auth-modal.html').then(r => r.text());
-      document.getElementById('donate_placeholder').innerHTML = donate;
+      const [header, footer, donate, modal] = await Promise.all([
+        fetch('/includes/header.html').then(r => r.text()),
+        fetch('/includes/footer.html').then(r => r.text()),
+        fetch('/includes/donate.html').then(r => r.text()),
+        fetch('/includes/auth-modal.html').then(r => r.text())
+      ]);
       document.getElementById('header_placeholder').innerHTML = header;
       document.getElementById('footer_placeholder').innerHTML = footer;
+      document.getElementById('donate_placeholder').innerHTML = donate;
       document.body.insertAdjacentHTML('beforeend', modal);
       updateAuthUI();
     }
@@ -140,14 +149,12 @@ export default async function handler(req, res) {
     <div id="toon_page">
       <div class="toon_panel">
         <h2><span id="toon_title">${title}</span></h2>
-
         <div class="player" id="player_container"></div>
-
         <div class="info">
           <div class="author">
             <img class="avatar" id="author_avatar" src="${authorAvatar}" onerror="this.src='/img/avatar100.gif'"/>
             <div class="author_name">
-              <a href="/user/${authorUsername}" class="username foreign">${authorUsername}</a>
+              <a href="/user/${authorUsername}" class="username foreign${authorRussianClass}">${authorUsername}</a>
             </div>
             <div class="date">${createdAt}</div>
             ${continuedFromHtml}
@@ -185,7 +192,6 @@ export default async function handler(req, res) {
           </div>
           <div class="tcontinues"></div>
         </div>
-
         <div class="left_panel">
           <div class="toon_comments" id="comments">
             <span class="header">
@@ -207,7 +213,6 @@ export default async function handler(req, res) {
             </div>
           </div>
         </div>
-
       </div>
     </div>
     <div style="clear:both"></div>
@@ -240,39 +245,41 @@ async function loadComments() {
   }
 
   const usernames = [...new Set(data.map(c => c.author_username).filter(Boolean))];
-  const avatarMap = {};
+  const userDataMap = {};
   await Promise.all(usernames.map(async (uname) => {
     try {
       const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_user_by_username', {
         method: 'POST',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({ p_username: uname })
       });
       const userData = await res.json();
       if (userData && userData.length > 0) {
         const avatarToonId = userData[0].avatar_toon_id || userData[0].avatar_toon || null;
-        avatarMap[uname] = avatarToonId
-          ? SUPABASE_URL + '/storage/v1/object/public/previews/' + avatarToonId + '_100.gif'
-          : '/img/avatar100.gif';
+        userDataMap[uname] = {
+          avatar: avatarToonId ? SUPABASE_URL + '/storage/v1/object/public/previews/' + avatarToonId + '_100.gif' : '/img/avatar100.gif',
+          russian: userData[0].russian || false
+        };
       } else {
-        avatarMap[uname] = '/img/avatar100.gif';
+        userDataMap[uname] = { avatar: '/img/avatar100.gif', russian: false };
       }
     } catch (e) {
-      avatarMap[uname] = '/img/avatar100.gif';
+      userDataMap[uname] = { avatar: '/img/avatar100.gif', russian: false };
     }
   }));
 
   list.innerHTML = data.map(c => {
     const username = c.author_username || 'anonymous';
-    const avatar = avatarMap[username] || '/img/avatar100.gif';
+    const ud = userDataMap[username] || { avatar: '/img/avatar100.gif', russian: false };
+    const russianClass = ud.russian ? ' russian' : '';
     const date = new Date(c.created_at);
     const dateStr = date.toLocaleDateString('en-US') + ' ' + date.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
     return \`<div class="comment">
       <div class="avatar">
-        <a href="/user/\${username}"><img class="avatar" src="\${avatar}" onerror="this.src='/img/avatar100.gif'"/></a>
+        <a href="/user/\${username}"><img class="avatar" src="\${ud.avatar}" onerror="this.src='/img/avatar100.gif'"/></a>
       </div>
       <div class="head">
-        <a href="/user/\${username}" class="username foreign">\${username}</a>
+        <a href="/user/\${username}" class="username foreign\${russianClass}">\${username}</a>
         <span class="date"><b>\${dateStr}</b></span>
       </div>
       <div class="text">\${c.text}</div>
@@ -286,12 +293,7 @@ async function postComment() {
   const { data: { user } } = await db.auth.getUser();
   if (!user) { showAuth('login'); return; }
   const username = user.user_metadata?.username || user.email;
-  const { error } = await db.from('comments').insert({
-    animation_id: TOON_ID,
-    user_id: user.id,
-    author_username: username,
-    text: text
-  });
+  const { error } = await db.from('comments').insert({ animation_id: TOON_ID, user_id: user.id, author_username: username, text: text });
   if (!error) {
     document.getElementById('comment_text').value = '';
     document.getElementById('comments_form').style.display = 'none';
@@ -339,7 +341,7 @@ async function loadAuthorAvatar() {
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_user_by_username', {
       method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ p_username: username })
     });
     const userData = await res.json();
