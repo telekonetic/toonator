@@ -2,24 +2,24 @@
   <div class="sn">
     <div class="login-wrapper">
       <a class="close" href="#" onclick="closeAuth(); return false;">✕</a>
-      <h2>Sign In</h2>
+      <h2>Войти</h2>
       <div class="info-block">
-        Hello! If you were registered before you can sign in with your <a href="#" onclick="toggleOldSignin(); return false;">email and password</a>. Otherwise you can <a href="/register/">sign up</a>.
+        Привет! Если вы уже зарегистрированы, войдите с помощью <a href="#" onclick="toggleOldSignin(); return false;">логина и пароля</a>. Если нет — <a href="/register/">зарегистрируйтесь</a>.
       </div>
       <div id="signin-old" class="signin-old hidden">
         <label class="short">
-          <p>Email:</p>
+          <p>Имя пользователя:</p>
           <input class="input" type="text" id="authEmail">
         </label>
         <label class="short">
-          <p>Password:</p>
+          <p>Пароль:</p>
           <input class="input" type="password" id="authPassword">
         </label>
         <div style="text-align:center; margin-top:10px;">
-          <button class="complete" onclick="submitAuth()">Sign In</button>
+          <button class="complete" onclick="submitAuth()">Войти</button>
         </div>
         <div style="text-align:center; margin-top:10px;">
-          <a href="/recover/" style="font:12pt ToonatorFont;">Forgot your password?</a>
+          <a href="/recover/" style="font:12pt ToonatorFont;">Забыли пароль?</a>
         </div>
       </div>
       <div id="authError" style="color:red; margin-top:8px; font:12pt ToonatorFont;"></div>

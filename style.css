@@ -15,10 +15,10 @@ body {
     margin: 0;
 }
 
-body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
+body,html {
+    margin:0;
+    padding:0;
+    height:100%;
 }
 
 img {
@@ -30,40 +30,35 @@ img {
     font: 10pt Arial;
     padding-top: 5px;
 }
-
 #header {
     height: 40px;
-    margin: 0 auto;
+    margin: 0 auto 0 auto;
     padding-bottom: 5px;
     width: 1000px;
     border-bottom: 1px solid #cccccc;
 }
-
 #header a.logo {
-    float: left;
+    float:left;
 }
-
 #header a {
     color: black;
     text-decoration: none;
 }
-
 #header a:hover {
     text-decoration: underline;
     color: #0000ff;
 }
-
 #header a.username {
     color: #005500;
 }
 
+
 #newmenu {
     float: right;
-    margin: 5px;
+    margin: 0;
     padding: 0;
-    list-style: none;
+    list-style:none;
 }
-
 #newmenu li {
     float: left;
     height: 32px;
@@ -77,14 +72,12 @@ img {
     width: 32px;
     text-align: center;
 }
-
 #newmenu #notify > a, #newmenu #spiders > a, #newmenu #mnumessages > a {
     position: relative;
     width: 32px;
     height: 32px;
     display: block;
 }
-
 #newmenu > li a .counter {
     position: absolute;
     font: 7pt Arial;
@@ -92,26 +85,22 @@ img {
     bottom: 0;
     background: rgba(255,255,255,0.8);
 }
-
 #newmenu #notify > a {
     background: url(/img/new-assets.png) no-repeat 0 -32px;
     color: #000;
 }
-
 #newmenu #notify > a:hover {
     background: url(/img/new-assets.png) no-repeat -32px -32px;
 }
-
 #newmenu #notify > a.active {
     background: url(/img/new-assets.png) no-repeat -64px -32px;
     color: #ff0000;
 }
 
 #newmenu #spiders > a {
-    background: url(/img/new-assets.png) no-repeat 0 0;
+    background: url(/img/new-assets.png) no-repeat;
     color: #000;
 }
-
 #newmenu #spiders > a:hover {
     background: url(/img/new-assets.png) no-repeat -32px 0;
 }
@@ -120,11 +109,9 @@ img {
     background: url(/img/new-assets.png) no-repeat 0 -64px;
     color: #000;
 }
-
 #newmenu #mnumessages > a:hover {
     background: url(/img/new-assets.png) no-repeat -32px -64px;
 }
-
 #newmenu #mnumessages > a.active {
     background: url(/img/new-assets.png) no-repeat -64px -64px;
     color: #ff0000;
@@ -163,7 +150,6 @@ img {
     padding: 0;
     margin: 0;
 }
-
 #newmenu li ul li a {
     display: block;
     padding: 0 8px;
@@ -175,77 +161,251 @@ img {
     overflow: hidden;
     width: 150px;
 }
-
-#newmenu li ul li a:hover {
+#newmenu li ul li.sharedacc {
+    margin-left: 10px;
+    margin-right: -20px;
+}
+#newmenu li ul li.regular a:hover {
     background: #eeeeee;
+}
+
+#dropdown {
+    position: absolute;
+    left: 50px;
+    top: 0px;
+    z-index:100;
+}
+#dropdown .username {
+    padding: 3px;
+    border: 1px solid #f0f0f0;
+    width:140px;
+    display:block;
+    overflow:hidden;
+}
+#dropdown:hover .username {
+    border-bottom: none;
+    border-left: 1px solid #cccccc;
+    border-right: 1px solid #cccccc;
+    border-top: 1px solid #cccccc;
+    background:#f0f0f0;
+}
+#dropdown ul {
+    background:#ffffff;
+    list-style:none;
+    position:absolute;
+    left:-9999px;
+    border-left: 1px solid #cccccc;
+    border-right: 1px solid #cccccc;
+    border-bottom: 1px solid #cccccc;
+    width: 140px;
+    padding: 3px;
+}
+#dropdown ul li {
+    padding-top:1px;
+    float:none;
+}
+#dropdown:hover ul {
+    left: 0;
+    background:#f0f0f0;
+}
+
+#header #notifies {
+    position: absolute;
+    left: 0;
+    width: 32px;
+    height: 32px;
+    background: red;
+}
+
+#header #notifies ul {
+    position: absolute;
 }
 
 ul.topmenu {
     padding-top: 6px;
     padding-left: 130px;
 }
-
 ul.topmenu li {
     list-style: none;
-    float: left;
+    float:left;
     margin: 0 1px;
 }
-
 ul.topmenu li a {
-    padding: 5px 0;
+    padding: 5px 0px;
     font-weight: bold;
     display: block;
+}
+#loginform {
+    position: relative;
+    width: 200px;
+    float:right;
+}
+#login_inline_form {
+    xdisplay:none;
+    position:absolute;
+    right: 0;
+    z-index:100;
+    top: 0px;
+    width: 250px;
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    margin: 0;
+}
+#login_inline_form div {
+    margin: 5px;
+}
+#login_inline_form label {
+    display:inline-block;
+    width: 115px;
+    font-family: ToonatorFont;
+    text-align: right;
+    margin-right: 5px;
+}
+#login_inline_form input {
+    width: 110px;
+    padding: 2px;
+    font-family: ToonatorFont;
+}
+#login_inline_form .button {
+    width: 80px;
+}
+#login_inline_form .submit {
+    text-align: center;
+}
+#login_inline_form form {
+    margin:0;padding:0;
+}
+#login_inline_form .captcha {
+    display: none;
+    text-align: center;
+}
+.small {
+    font-size: 10px;
+    font-weight: normal;
+}
+.submit label {
+    text-align: left  !important;
+    width: auto !important;
+    margin-left: 5px;
+}
+#auto_login {
+    width: auto !important;
+}
+#login_inline_form {
+    display:none;
+    line-height: normal;
+}
+#login_inline_info a {
+    font-family: ToonatorFont;
 }
 
 #content_wrap {
     margin-top: 5px;
     font: 10pt Arial;
 }
-
 #content {
-    margin: 0 auto;
+    margin: 0 auto 0 auto;
     padding-bottom: 5px;
     width: 1000px;
     border-bottom: 1px solid #cccccc;
 }
-
 #footer {
-    margin: 0 auto;
+    margin: 0 auto 0 auto;
     padding: 0 2px;
     width: 1000px;
-    text-align: center;
-    font-size: 8pt;
-    color: #888888;
+    text-align:center;
+    font-size:8pt;
+    color:#888888;
 }
-
 #footer a {
-    color: #888888;
-    text-decoration: none;
+    color:#888888;
+    text-decoration:none;
 }
-
 #footer a:hover {
-    color: black;
-    text-decoration: underline;
+    color:black;
+    text-decoration:underline;
 }
 
 .imglink {
-    display: block;
+    xposition:absolute;
+    display:block;
     width: 130px;
-    height: 22px;
+    height:22px;
+}
+.imglink .hint {
+    position:relative;
+    top:0px;
+    left:-10px;
 }
 
-.content_left {
-    width: 680px;
-    float: left;
+.body {
+    display:inline-block;
+    width: 1000px;
+    background:#ffffff;
+    text-align:left;
+    height:100%;
 }
 
-.content_right {
-    width: 320px;
-    float: left;
+.top {
+    display:block;
+    nobackground: #cccccc;
+    padding: 5px 0 5px 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #cccccc;
 }
-
-.clear {
-    clear: both;
+.top * {
+    vertical-align:middle;
+}
+.top img {
+    padding-right: 30px;
+}
+.top a {
+    color: black;
+    font-weight: bold;
+    text-decoration: none;
+}
+.top a.menu {
+    display:inline-block;
+    margin: 0 5px;
+    padding: 5px;
+}
+.top a.selected {
+    background: #dddddd;
+}
+.top a:hover {
+    color: #0000ff;
+    text-decoration:underline;
+}
+.top a.draw {
+    color: red;
+}
+.top .top_menu {
+    display:inline-block;
+    width: 850px;
+}
+.toon_cc {
+    display:block;
+    vertical-align:top;
+}
+.toon_c1 {
+    display: inline-block;
+    width: 610px;
+}
+.toon_c2 {
+    vertical-align:top;
+    display: inline-block;
+    width: 370px;
+    margin-left:20px;
+}
+.toon_c1_v3 {
+    display: inline-block;
+    width: 640px;
+}
+.toon_c2_v3 {
+    vertical-align:top;
+    display: inline-block;
+    width: 340px;
+    margin-left:20px;
 }
 
 p {
@@ -253,214 +413,593 @@ p {
     text-align: justify;
 }
 
-h1 {
-    display: block;
-    font-size: 18px;
-    font-family: ToonatorFont, Verdana;
-    font-weight: bold;
-    text-align: center;
-}
-
 h3 {
     font-size: 24px;
-    font-family: ToonatorFont, Arial;
+    font-family: 'ToonatorFont', Arial;
     font-weight: normal;
 }
+.toon_player {
+    display: block;
+}
+.toon_rating {
+    display:block;
+    margin: 5px 0;
+    height: 30px;
+}
+.toon_rating * {
+    display:inline-block;
+    vertical-align:middle;
+}
+.toon_stars {
+    float:left;
+}
+.toon_views {
+    float:right;
+}
+.toon_info {
+    display:block;
+    width: 370px;
+    background: #eeeeee;
+    border: 1px solid #cccccc;
+}
+.toon_info_v3 {
+    display:block;
+    width: 340px;
+    background: #eeeeee;
+    border: 1px solid #cccccc;
+}
+.toon_author {
+    display: block;
+    padding: 5px;
+}
+.toon_author span {
+    display:inline-block;
+    vertical-align:top;
+    padding-left: 5px;
+}
+.toon_info img {
+    border: 1px solid #cccccc;
+}
+.toon_description {
+    display:block;
+    padding: 5px;
+}
+.toon_tags {
+    padding: 5px;
+}
+.toon_moderator a {
+    display: inline-block;
+    margin: 3px;
+    padding: 0 5px;
+    width: 30px;
+    border: 1px solid #888888;
+    text-decoration:none;
+    background: #555555;
+    color: #ffffff !important;
+    height: 16px;
+    line-height: 16px;
+}
+.toon_moderator a .counter {
+    float:right;
+    color: #888888;
+}
+.toon_moderator a:hover {
+    background: #333333;
+    border-color: #000000;
+}
+.toon_moderator a.selected {
+    border-color: #000000;
+    background: #eeeeee;
+    color: #000000;
+}
+.toon_prize_1 {
+    background-color: #cce0e0;
+    padding: 5px;
+}
+.toon_prize_2 {
+    background-color: #ccffcc;
+    padding: 5px;
+}
+.toon_prize_3 {
+    background-color: #ffcc00;
+    padding: 5px;
+}
+.toon_prize_4 {
+    background-color: #ffcccc;
+    padding: 5px;
+}
+.toon_prize_5 {
+    background-color: #E3E7B8;
+    padding: 5px;
+}
+.toon_prize_6 {
+    background-color: #FFEAA7;
+    padding: 5px;
+}
 
+.continues {
+    display:block;
+    margin: 5px;
+    overflow: hidden;
+    width: 360px;
+    height: 67px;
+}
+.continues img {
+    display:inline-block;
+}
+.continues .info {
+    display:inline-block;
+    vertical-align:top;
+    margin: 0 10px;
+    width: 200px;
+}
+.continues .info a {
+    text-decoration: none;
+    font-weight:bold;
+    color:black;
+}
+.continues .info a:hover{
+    text-decoration:underline;
+}
+.continues .original, .continues .username {
+    font-size: 10px;
+}
+.continues a.username {
+    color:#005500;
+}
+.small {
+    font-size: 10px;
+    font-weight: normal;
+}
 a.username {
     color: #005500 !important;
     font-weight: bold;
-    text-decoration: none;
+    text-decoration:none;
 }
-
 a.username:hover {
     text-decoration: underline;
 }
-
 a.anonymous {
-    color: #555555 !important;
+    color:#555555 !important;
 }
-
 a.anonymous:hover {
     text-decoration: none;
 }
-
 a.foreign {
     color: #3333cc !important;
 }
-
 a.moderator {
     color: #007f7f !important;
     background: url(/img/favicon.ico) no-repeat;
-    padding-left: 18px;
+    padding-left: 18px !important;
 }
-
 a.toonator {
     color: #007f7f !important;
     background: url(/img/favicon-eyes.png) no-repeat;
-    padding-left: 18px;
+    padding-left: 18px !important;;
 }
-
 a.gray {
-    color: #888888 !important;
-    background: none;
+    color:#888888 !important;
+    background:none;
     text-decoration: none;
 }
-
 a.gray:hover {
-    text-decoration: underline;
+    text-decoration:underline;
 }
 
 a.cite {
     color: #cccccc;
-    text-decoration: none;
+    text-decoration:none;
 }
-
 a.cite:hover {
     color: #555555;
 }
 
-a.nmenu {
-    color: #0000ff;
-    text-decoration: none;
+
+.form .p, .form .ps {
+    margin:0;
+    padding:3 0;
+    display:block;
+    width: 500px;
+}
+.form .ps {
+    text-align:center;
+}
+.form label {
+    display:inline-block;
+    width: 120px;
+    vertical-align:top;
+}
+.form input.text {
+    width: 300px;
+}
+.form textarea {
+    width: 300px;
+    height: 80px;
 }
 
-a.nmenu:hover {
-    color: #0000ff;
-    text-decoration: underline;
+.star_empty, .star_half, .star_full {
+    width: 16px;
+    height: 16px;
+    background: url(/img/stars.gif);
+    border:none;
 }
-
-a.nmenu.selected {
-    color: #000000;
-    font-weight: bold;
+.star_empty {
+    background-position: -32px 0px;
 }
-
-a.btn {
-    display: inline-block;
-    text-align: center;
-    background: #dddddd;
-    text-decoration: none;
-    color: #888888;
-    font-family: Verdana;
+.star_half {
+    background-position: -16px 0px;
+}
+.star_full {
+    background-position: 0px 0px;
+}
+.toon_code {
+    display:block;
+    padding: 5px;
+}
+.toon_code textarea {
+    width: 365px;
+    height: 50px;
+    font-family:Tahoma;
+    font-size: 10px;
+    margin-top: 5px;
+    overflow:hidden;
+}
+.toon_code textarea.hidden {
+    display:none;
+}
+.toon_code a {
+    display:inline-block;
+    width: 40px;
+    text-align:center;
+    background: #cccccc;
+    text-decoration:none;
+    color: #555555;
+    font-family:Verdana;
     font-size: 10px;
     font-weight: bold;
-    vertical-align: middle;
-    padding: 3px 10px;
+    vertical-align:middle;
+    padding: 3px 0;
 }
-
-a.btn:hover {
-    color: black;
+.toon_code a.hidden {
+    color: #888888;
+    background: #dddddd;
+}
+.toon_code a:hover {
+    color:black;
     background: #cccccc;
 }
-
-.black {
-    color: black;
-    font-weight: bold;
+.toon_code #code {
+    display:none;
 }
 
-.red, a.red {
-    color: red !important;
+
+a.btn {
+    display:inline-block;
+    text-align:center;
+    background: #dddddd;
+    text-decoration:none;
+    color: #888888;
+    font-family:Verdana;
+    font-size: 10px;
     font-weight: bold;
+    vertical-align:middle;
+    padding: 3px 10px;
+}
+a.btn:hover {
+    color:black;
+    background: #cccccc;
+}
+.index, .news {
+    display:inline-block;
+    vertical-align:top;
+    padding: 0 10px;
 }
 
-.green {
-    color: green;
-    font-weight: bold;
+.content_left {
+    width: 680px;
+    float:left;
 }
-
-.grayb {
+.content_right {
+    width: 320px;
+    float:left;
+}
+.clear {
+    clear:both;
+}
+.index {
+    width: 640px;
+}
+.profile, .profileinfo, .profiletoons {
+    display:inline-block;
+    vertical-align:top;
+}
+.news {
+    width: 280px;
+    text-align: justify;
+}
+.profileinfo {
+    width: 330px;
+}
+.pages {
+    display:block;
+    text-align:center;
+    padding: 10px 0;
+}
+.pages a, .pages span {
+    display:inline-block;
+    width:30px;
+    text-align:center;
+    font-size:14px;
+    font-weight:bold;
+    font-family: ToonatorFont;
+    padding: 3px;
+    margin: 0 3px;
+}
+.pages a {
+    color: #888888;
+    background: #eeeeee;
+    text-decoration:none;
+}
+.pages a:hover {
+    color: #000000;
+    background: #cccccc;
+}
+.pages span.current {
+    background:#ddffdd;
+}
+.pages span.bg {
     color: #888888;
 }
+h1 {
+    display:block;
+    font-size: 18px;
+    font-family: ToonatorFont, Verdana;
+    font-weight:bold;
+    text-align:center;
+}
 
-.center {
-    text-align: center;
+.toon_comments {
+    display:block;
+}
+
+.comment {
+    display: block;
+    padding: 5px;
+    min-height: 40px;
+}
+.comment .avatar {
+    float:left;
+    margin-right:5px;
+}
+.comment .user {
+    vertical-align:top;
+    display:inline-block;
+    width:150px;
+    padding: 2px 5px;
+    text-align:center;
+}
+.comment .date {
+    float:right;
+    font-size: 8pt;
+}
+.comment .text {
+    vertical-align:middle;
+    text-align:justify;
+    word-wrap: break-word;
+}
+.toon_comments .header,.toon_comments .form {
+    border-bottom: 1px solid #cccccc;
+    display:block;
+    font-family: ToonatorFont, "Comic Sans MS";
+    font-size: 12pt;
+}
+#comments_form {
+    display:none;
+}
+.toon_comments a.new {
+    float:right;
+    text-decoration: none;
+    color: blue;
+}
+.toon_comments a.new:hover {
+    text-decoration:underline;
+}
+.toon_comments .form1, .toon_comments .form2, #privmsg_form .form1, #privmsg_form .form2 {
+    display:block;
+    text-align:right
+}
+.toon_comments textarea {
+    border: 1px solid #cccccc;
+    margin: 10px;
+    width: 580px;
+    font-family: Arial; font-size: 10pt;
+}
+.toon_comments button, #privmsg_form button {
+    margin: 0 10px 10px 0;
+}
+
+#privmsg_form textarea {
+    border: 1px solid #cccccc;
+    margin: 10px;
+    width: 650px;
+    font-family: Arial; font-size: 10pt;
 }
 
 .gray {
     background: #eeeeee;
 }
 
-.small {
-    font-size: 10px;
-    font-weight: normal;
+.sprite, img.sprite, .sprite img {
+    background-attachment:scroll;
+    background-color:transparent;
+    background-image:url("/img/s.png");
+    background-repeat:repeat-x;
+    border:0 none;
+    cursor:pointer;
+    padding:0;
+    vertical-align:middle;
+}
+button {
+    -moz-border-radius:3px 3px 3px 3px;
+    background:-moz-linear-gradient(center top , #FFFFFF, #EFEFEF) repeat scroll 0 0 #F6F6F6;
+    border:1px solid #cccccc;
+    cursor:pointer;
+    height:28px;
+    overflow:visible;
+    padding:0 5px;
+    vertical-align:middle;
+    white-space:nowrap;
+}
+button:hover, button:focus  {
+    -moz-box-shadow:0 0 3px #999999;
+    background:-moz-linear-gradient(center top , #FFFFFF, #EBEBEB) repeat scroll 0 0 #F3F3F3;
+    border-color:#999999;
+    outline:0 none;
+}
+button * {
+    vertical-align:middle;
+    display:inline-block;
+}
+.toon-buttons {
+    margin: 3px;
 }
 
-/* Toons list */
+.vote-like-img {
+    background-position:-16px 0px;
+    height:18px;
+    width:16px;
+}
+.vote-notlike-img {
+    background-position:0px 0px;
+    height:18px;
+    width:16px;
+}
+
+.vote-like-img-voted {
+    background-position:-16px -18px;
+    height:18px;
+    width:16px;
+}
+.vote-notlike-img-voted {
+    background-position:0px -18px;
+    height:18px;
+    width:16px;
+}
+
+.vote-like-text {
+    margin-left:5px;
+}
+.vote-results {
+    -moz-border-radius:3px 3px 3px 3px;
+    background:#F3F3F3;
+    border:1px solid #cccccc;
+    display:inline-block;
+    font-size:11px;
+    vertical-align:middle;
+    padding:0 5px;
+    width:50px;
+    height: 26px;
+}
+.dislikes-bar, .likes-bar {
+    margin-top:4px;
+    background:none repeat scroll 0 0 #DDDDDD;
+    border-color:#CCCCCC;
+    height:6px;
+}
+.likes-bar  {
+    xbackground-color:#2CC42C;
+    xborder:1px solid #28A428;
+    margin-bottom:2px;
+}
+.xdislikes-bar {
+    background-color:#B73B3B;
+    border:1px solid #943131;
+}
+.reg_form div {display:block; margin:3px}
+.reg_form label {display:inline-block; font-size: 16px; width:200px}
+.reg_form input {font-size: 16px; width: 200px}
+
+.error {padding-left: 20px; color:red; background: url(/img/error.gif) no-repeat; margin-left:4px}
+
+/* toons list */
 
 .toons_container {
-    display: block;
-    text-align: center;
+    display:block;
+    text-align:center;
     padding: 10px 0;
 }
-
+.index .toons_container {
+    text-align:left;
+}
 .toons_list {
     margin: 0 auto;
     width: 880px;
     text-align: left;
 }
-
 .toons_list.large {
     margin: 0 auto;
     width: 970px;
     text-align: left;
 }
-
 .content_left .toons_list {
     width: 660px;
 }
 
+.content_profile_left {
+
+}
 .content_profile .toons_list {
     width: 660px;
 }
+
 
 .owned {
     background-image: url(/img/owned2.gif);
     background-repeat: repeat-x;
 }
-
 .toon_preview {
     background-color: #eeeeee;
-    display: inline-block;
+    display:inline-block;
     zoom: 1;
+    *display: inline;
     width: 210px;
     margin: 3px;
-    text-align: center;
-    padding: 5px 0;
+    text-align:center;
+    padding: 5px 0 5px 0;
+    -moz-border-radius: 6px;
     border-radius: 6px;
-    position: relative;
+    position:relative;
 }
-
 .large {
     width: 320px;
     margin: 0 0 10px 0;
     padding: 0 0 5px 0;
 }
-
 .large.owned {
     background-image: url(/img/owned4.gif);
     background-repeat: repeat-x;
 }
 
 .toonmedal {
-    position: absolute;
-    left: 5px;
-    top: 7px;
-    width: 24px !important;
-    height: 24px !important;
+    position:absolute;
+    left:5px;
+    top:7px;
+    width:24px !important;
+    height:24px !important;
 }
-
 .toonmedal2 {
-    position: absolute;
-    left: 5px;
-    top: 3px;
-    width: 24px !important;
-    height: 24px !important;
+    position:absolute;
+    left:5px;
+    top:3px;
+    width:24px !important;
+    height:24px !important;
 }
 
 .toon_preview img {
     margin-bottom: 5px;
-    width: 200px;
-    height: 100px;
+    width:200px;
+    height:100px;
 }
 
 .large img {
@@ -468,198 +1007,390 @@ a.btn:hover {
     height: 150px;
     margin: 10px 10px 5px 10px;
 }
-
-.toon_preview .toon_name a,
-.toon_preview .toon_name_top a {
-    display: block;
+.toon_preview .toon_name a, .toon_preview .toon_name_top a {
+    display:block;
     font-size: 12px;
     font-weight: bold;
     color: #555555;
     text-decoration: none;
 }
-
 .toon_preview .toon_name_top a {
     font-size: 14px;
     margin-top: 10px;
 }
-
 .toon_preview .toon_tagline a {
     color: #000000;
 }
-
 .toon_preview .toon_tagline a.noh {
-    text-decoration: none;
+    text-decoration:none;
 }
-
 .toon_preview a.link {
-    display: inline-block;
-    overflow: hidden;
-    height: 16px;
+    display:inline-block;
+    overflow:hidden;
+    height:16px;
 }
-
 .toon_tagline {
     font-size: 8pt;
     height: 18px;
 }
-
 .toon_feature {
     color: #333388;
     font-size: 10pt;
 }
-
 .toon_feature a {
     color: #333388;
-    text-decoration: none;
+    text-decoration:none;
 }
-
 .toon_feature a:hover {
     color: black;
 }
-
+.green {
+    color: green;
+    font-weight:bold;
+}
+.grayb {
+    color: #888888;
+}
+.center {
+    text-align:center;
+}
 .last_comments {
     height: 40px;
     overflow: hidden;
+}
+.thumb {
+    border: 1px solid #cccccc;
+    vertical-align: middle;
+    max-width: 40px;
+    border-radius: 4px;
+}
+ul.share {
+    font-family: ToonatorFont;
+    font-size: 14px;
+    padding: 0px;
+}
+ul.share li {
+    list-style: none;
+    float:left;
+    margin: 0 1px;
+    line-height: 20px;
+}
+
+.medals {
+    margin-top: 20px;
+}
+.medal_preview {
+    margin: 10px auto;
+    width: 220px;
+}
+.medal_name {
+    font-family: ToonatorFont;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.tutorial {
+    font-family: ToonatorFont;
+}
+.tutorial h2 {
+    color: #0e56c4;
+    font-size: 24px;
+    margin: 0;
+}
+.floattext p {
+    text-align: left;
+}
+
+.info_spiders {
+    font-family: ToonatorFont;
+    font-size: 26px;
+}
+
+
+.prize_1 {
+    background-color: #cce0e0;
+}
+.prize_1 .toon_name a {
+    color: black;
+}
+.prize_1 .grayb {
+    color: black;
+}
+.prize_2 {
+    background-color: #ccffcc;
+}
+.prize_2 .toon_name a {
+    color: black;
+}
+.prize_2 .grayb {
+    color: black;
+}
+.prize_3 {
+    background-color: #ffcc00;
+}
+.prize_3 .toon_name a {
+    color: black;
+}
+.prize_3 .grayb {
+    color: black;
+}
+.prize_4 {
+    background-color: #ffcccc;
+}
+.prize_5 {
+    background-color: #E3E7B8;
+}
+.prize_6 {
+    background-color: #FFEAA7;
+}
+
+ul.pay_buttons {
+
+}
+ul.pay_buttons li {
+    list-style: none;
+    float:left;
+    margin: 0 3px;
+}
+ul.pay_buttons li a {
+    font-weight: bold;
+    display: block;
+    width: 64px;
+    height:64px;
+}
+.dialog_item {
+    margin: 0 50px;
+}
+.dialog_info {
+    float:right;
+}
+.red,a.red {
+    color:red !important;
+    font-weight:bold;
+}
+
+
+ul.friends {
+
+}
+ul.friends li {
+    list-style: none;
+    float:left;
+    padding: 0px 2px;
+    margin: 10px 0;
+    display: block;
+    width: 100px;
+    height: 60px;
+    text-align:center;
+    overflow:hidden;
+}
+ul.friends li a {
+    text-align:center;
+}
+
+img.avatar80 {
+    width:80px;
+    height:40px;
+}
+
+.likes_count, .views_count {
+    font-family: ToonatorFont;
+    font-size: 11pt;
+    padding: 0 6px 0 6px;
 }
 
 .draft {
     background: #333333;
     color: white;
 }
-
-.draft .toon_name a,
-.draft .toon_tagline,
-.draft .toon_tagline a {
+.draft .toon_name a, .draft .toon_tagline, .draft .toon_tagline a {
     color: white;
 }
 
-/* Toon page */
 
-#toon_page h2 {
-    font-family: ToonatorFont, "Comic Sans MS";
-    clear: both;
+img.avatar {
+    width: 80px;
+    height: 40px;
+    border: 1px solid #eeeeee;
+    border-radius: 5px;
 }
-
+img.p100 {
+    width:130px;
+    height:65px;
+    border:1px solid #cccccc;
+}
+#toon_page h2 {font-family: ToonatorFont, "Comic Sans MS";clear:both}
 #toon_page h2 a {
     color: #555555;
-    text-decoration: none;
+    text-decoration:none;
 }
-
 #toon_page h2 a:hover {
     color: #0000ff;
-    text-decoration: underline;
+    text-decoration:underline;
 }
-
 #toon_page .left_panel {
-    float: left;
+    float:left;
     width: 610px;
 }
-
 .player {
-    width: 610px;
-    height: 350px;
-    float: left;
+    width:610px;
+    height:350px;
+    float:left;
 }
-
 .player_expanded {
-    width: 1000px;
-    height: 575px;
+    width:1000px;
+    height:575px;
 }
+#toon_page .comments {
 
+}
 #toon_page .info {
     margin-left: 20px;
     width: 350px;
-    float: right;
+    float:right
 }
-
 #toon_page .info .author {
     height: 44px;
 }
-
 #toon_page .info .author .avatar {
-    float: left;
+    float:left;
     margin-right: 10px;
 }
-
 #toon_page .info .author .author_name {
     font-family: ToonatorFont, "Comic Sans MS";
     font-size: 18pt;
 }
-
 #toon_page .info .author .date {
     font-size: 8pt;
 }
-
 #toon_page .info .description {
-    clear: both;
+    clear:both;
     margin: 5px 0;
     font-family: Arial;
     font-size: 10pt;
+    word-wrap: break-word;
 }
-
 #toon_page .info .tags {
-    clear: both;
+    clear:both;
     font-family: Arial;
     font-size: 10pt;
 }
-
 #toon_page .info .tags a {
     color: #888888;
     text-decoration: none;
 }
-
 #toon_page .info .tags a:hover {
     color: black;
     text-decoration: underline;
 }
-
 #toon_page .info .buttons {
-    clear: both;
+    clear:both;
     margin-top: 10px;
     font-family: ToonatorFont, "Comic Sans MS";
     font-size: 12pt;
 }
-
 #toon_page .info .buttons .hover {
     line-height: 30px;
     height: 30px;
-    vertical-align: middle;
+    vertical-align:middle;
 }
-
 #toon_page .info .buttons a {
     text-decoration: none;
     color: #555555;
 }
-
 #toon_page .info .buttons img {
     vertical-align: middle;
 }
-
-#toon_page .info .buttons a:hover,
-#toon_page .info .buttons a.active {
+#toon_page .info .buttons a:hover, #toon_page .info .buttons a.active {
+    color: black;
+}
+#toon_page .info h4 {
+    font-family: ToonatorFont, "Comic Sans MS";
+    font-size: 14pt;
+    text-align: center;
+    font-weight: bold
+}
+#toon_page .info h4 a {
+    text-decoration: none;
+    color: #555555;
+}
+#toon_page .info h4 a:hover {
+    text-decoration: underline;
     color: black;
 }
 
 #toon_page .info .prizes {
     margin-top: 10px;
 }
-
-#toon_page .info .prize,
-.rightpanel .prize {
+#toon_page .info .prize, .rightpanel .prize {
+    -moz-border-radius: 6px;
     border-radius: 6px;
     text-align: center;
     padding: 10px 0;
     margin: 2px 0;
 }
-
 #toon_page .info .prize a {
     text-decoration: none;
     color: #333333;
-    font-weight: bold;
+    font-weight:bold;
 }
-
 #toon_page .info .prize a:hover {
     text-decoration: underline;
+    color:black;
+}
+#toon_page .toon_admin{
+    clear:both;
+}
+#toon_page .tcontinues {
+    clear:both;
+    margin-top: 10px;
+}
+#toon_page ul.continues_list {
+    font-family: Arial;
+}
+#toon_page ul.continues_list li {
+    clear:both;
+    list-style: none;
+    margin: 3px 0px;
+    height: 70px;
+}
+#toon_page ul.continues_list li.hidden {
+    display:none;
+}
+#toon_page ul.continues_list li.showmore {
+    height: auto;
+    text-align:center;
+}
+#toon_page ul.continues_list li a {
+    text-decoration: none;
     color: black;
+}
+#toon_page ul.continues_list li a:hover {
+    text-decoration: underline;
+}
+#toon_page ul.continues_list li.showmore a {
+    font-weight:bold;
+    font-family: ToonatorFont, "Comic Sans MS";
+}
+#toon_page ul.continues_list li img {
+    float:left;
+    margin-right:5px;
+}
+#toon_page ul.continues_list li .name {
+    font-weight:bold;
+    overflow:hidden;
+    height: 18px;
+}
+#toon_page ul.continues_list li .cinfo {
+    font-size: 8pt;
+}
+#toon_page .info .share_hidden, #toon_page .info #download_links, #toon_page .info #sound_uploader {
+    display:none;
+}
+
+#toon_page .info #download_links {
+    font-family: Arial;
+    font-size: 10pt;
 }
 
 #toon_page .info .more-options {
@@ -680,155 +1411,23 @@ a.btn:hover {
     transition: max-height 0.5s, opacity 0.5s;
 }
 
-#toon_page .toon_admin {
-    clear: both;
-}
-
-#toon_page .tcontinues {
-    clear: both;
-    margin-top: 10px;
-}
-
-#toon_page ul.continues_list {
-    font-family: Arial;
-}
-
-#toon_page ul.continues_list li {
-    clear: both;
-    list-style: none;
-    margin: 3px 0;
-    height: 70px;
-}
-
-#toon_page ul.continues_list li.hidden {
-    display: none;
-}
-
-#toon_page ul.continues_list li.showmore {
-    height: auto;
-    text-align: center;
-}
-
-#toon_page ul.continues_list li a {
-    text-decoration: none;
+.black {
     color: black;
+    font-weight:bold;
 }
-
-#toon_page ul.continues_list li a:hover {
-    text-decoration: underline;
-}
-
-#toon_page ul.continues_list li.showmore a {
-    font-weight: bold;
-    font-family: ToonatorFont, "Comic Sans MS";
-}
-
-#toon_page ul.continues_list li img {
-    float: left;
-    margin-right: 5px;
-}
-
-#toon_page ul.continues_list li .name {
-    font-weight: bold;
-    overflow: hidden;
-    height: 18px;
-}
-
-#toon_page ul.continues_list li .cinfo {
-    font-size: 8pt;
-}
-
-/* Comments */
-
-.toon_comments {
-    display: block;
-}
-
-.toon_comments .header,
-.toon_comments .form {
-    border-bottom: 1px solid #cccccc;
-    display: block;
-    font-family: ToonatorFont, "Comic Sans MS";
-    font-size: 12pt;
-}
-
-.toon_comments a.new {
-    float: right;
-    text-decoration: none;
-    color: blue;
-}
-
-.toon_comments a.new:hover {
-    text-decoration: underline;
-}
-
-.toon_comments textarea {
-    border: 1px solid #cccccc;
-    margin: 10px;
-    width: 580px;
-    font-family: Arial;
-    font-size: 10pt;
-}
-
-.toon_comments button {
-    margin: 0 10px 10px 0;
-}
-
-.comment {
-    display: block;
-    padding: 5px;
-    min-height: 40px;
-}
-
-.comment .avatar {
-    float: left;
-    margin-right: 5px;
-}
-
-.comment .date {
-    float: right;
-    font-size: 8pt;
-}
-
-.comment .text {
-    vertical-align: middle;
-    text-align: justify;
-    word-wrap: break-word;
-}
-
-img.avatar {
-    width: 80px;
-    height: 40px;
-    border: 1px solid #cccccc;
-}
-
-img.avatar80 {
-    width: 80px;
-    height: 40px;
-}
-
-img.p100 {
-    width: 200px;
-    height: 100px;
-    border: 1px solid #cccccc;
-}
-
-/* Paginator */
 
 div.paginator {
     text-align: center;
 }
-
 div.paginator ul li {
     list-style: none;
     margin: 1px 5px;
     font-family: ToonatorFont;
     font-size: 11pt;
     font-weight: bold;
-    text-align: center;
+    text-align:center;
     display: inline-block;
 }
-
 div.paginator ul li a {
     text-decoration: none;
     color: #555555;
@@ -837,154 +1436,221 @@ div.paginator ul li a {
     display: inline-block;
 }
 
-div.paginator ul li a:hover,
-div.paginator ul li.current a {
+div.paginator ul li a:hover, div.paginator ul li.current a {
+    -moz-border-radius: 5px;
     border-radius: 5px;
     color: black;
-    background: #eeeeee;
+    background:#eeeeee;
 }
-
 div.paginator ul li.current a {
     border: 1px solid #888888;
 }
 
-/* Share */
-
-ul.share {
-    font-family: ToonatorFont;
-    font-size: 14px;
-    padding: 0;
-    list-style: none;
+.contest_navigator {
+    width: 610px;
+    margin: 5px 0 0 0 ;
 }
-
-ul.share li {
-    list-style: none;
-    float: left;
-    margin: 0 1px;
-    line-height: 20px;
+.contest_navigator .left {
+    width: 305px;
+    float:left;
 }
-
-/* Buttons */
-
-button {
-    border-radius: 3px;
-    background: linear-gradient(to bottom, #FFFFFF, #EFEFEF) #F6F6F6;
-    border: 1px solid #cccccc;
-    cursor: pointer;
-    height: 28px;
-    overflow: visible;
-    padding: 0 5px;
-    vertical-align: middle;
-    white-space: nowrap;
+.contest_navigator .right {
+    width: 305px;
+    float:left;
+    text-align:right;
 }
-
-button:hover,
-button:focus {
-    box-shadow: 0 0 3px #999999;
-    background: linear-gradient(to bottom, #FFFFFF, #EBEBEB) #F3F3F3;
-    border-color: #999999;
-    outline: 0 none;
-}
-
-button * {
-    vertical-align: middle;
-    display: inline-block;
-}
-
-/* Prize colors */
-
-.prize_1 { background-color: #cce0e0; }
-.prize_1 .toon_name a { color: black; }
-.prize_1 .grayb { color: black; }
-.prize_2 { background-color: #ccffcc; }
-.prize_2 .toon_name a { color: black; }
-.prize_2 .grayb { color: black; }
-.prize_3 { background-color: #ffcc00; }
-.prize_3 .toon_name a { color: black; }
-.prize_3 .grayb { color: black; }
-.prize_4 { background-color: #ffcccc; }
-.prize_5 { background-color: #E3E7B8; }
-.prize_6 { background-color: #FFEAA7; }
-
-.toon_prize_1 { background-color: #cce0e0; padding: 5px; }
-.toon_prize_2 { background-color: #ccffcc; padding: 5px; }
-.toon_prize_3 { background-color: #ffcc00; padding: 5px; }
-.toon_prize_4 { background-color: #ffcccc; padding: 5px; }
-.toon_prize_5 { background-color: #E3E7B8; padding: 5px; }
-.toon_prize_6 { background-color: #FFEAA7; padding: 5px; }
-
-/* Profile */
-
-.profile, .profileinfo, .profiletoons {
-    display: inline-block;
-    vertical-align: top;
-}
-
-.profileinfo {
-    width: 330px;
-}
-
-.likes_count, .views_count {
-    font-family: ToonatorFont;
+.contest_navigator .navlink {
     font-size: 11pt;
-    padding: 0 6px;
+    font-family: ToonatorFont, "Comic Sans MS";
+    font-weight:bold;
+    color: #555555;
+    text-decoration:none;
+}
+.contest_navigator .navlink:hover {
+    text-decoration: underline;
+    color:black;
+}
+.contest_toon {
+    width: 610px;
+    margin: 10px 0 0 35px;
 }
 
-ul.friends li {
-    list-style: none;
-    float: left;
-    padding: 0 2px;
-    margin: 10px 0;
-    display: block;
-    width: 100px;
-    height: 60px;
-    text-align: center;
-    overflow: hidden;
+.wiki_header {
+    font-size:22pt;
+    text-align:left;
+    font-weight:bold;
+    margin-bottom:20px;
+    border-bottom: 1px solid #cccccc;
+    font-family: ToonatorFont, "Comic Sans MS";
 }
 
-ul.friends li a {
-    text-align: center;
+.wiki h1 {
+    font-size:18pt;
+    text-align:left;
+    font-weight:bold;
+    font-family: ToonatorFont, "Comic Sans MS";
+    margin-top:20px;
+    border-bottom: 1px solid #cccccc;
 }
 
-/* Pages */
-
-.pages {
-    display: block;
-    text-align: center;
-    padding: 10px 0;
+.wiki h2 {
+    font-size:14pt;
+    text-align:left;
+    font-weight:bold;
+    font-family: ToonatorFont, "Comic Sans MS";
+    margin-top:10px;
 }
 
-.pages a, .pages span {
-    display: inline-block;
-    width: 30px;
-    text-align: center;
-    font-size: 14px;
-    font-weight: bold;
-    font-family: ToonatorFont;
+.wiki h3 {
+    font-size:12pt;
+    text-align:left;
+    font-weight:bold;
+    font-family: ToonatorFont, "Comic Sans MS";
+    margin-top:10px;
+}
+
+.wiki pre {
+    background:#eeeeee;
+    border: 1px dashed black;
     padding: 3px;
-    margin: 0 3px;
 }
 
-.pages a {
-    color: #888888;
+.wiki li {
+    margin-left:30px;
+}
+
+.wiki ol, .wiki ul {
+    margin: 10px 0;
+}
+
+.wiki table {
+    border-collapse: collapse;
+    border-spacing: none;
+    width: 100%;
+}
+.wiki table th {
     background: #eeeeee;
-    text-decoration: none;
+}
+.wiki table td, .wiki table th {
+    border: 1px solid #cccccc;
+    vertical-align:top;
+    padding: 5px;
 }
 
-.pages a:hover {
-    color: #000000;
-    background: #cccccc;
+.crown {
+    background: url(/img/icons/crown.gif) no-repeat;
+    padding-left: 18px !important;;
+    min-height:16px;
+}
+.crownp {
+    background: url(/img/icons/crownp.png) no-repeat;
+    padding-left: 18px !important;;
+    min-height:16px;
+}
+.crownp2 {
+    background: url(/img/icons/crownw.png) no-repeat;
+    padding-left: 19px !important;;
+    min-height:16px;
+}
+.slowpoke {
+    background: url(/img/icons/slowpoke.png) no-repeat;
+    padding-left: 22px !important;;
+    min-height:17px;
+}
+.crownw {
+    background: url(/img/icons/crownw.png) no-repeat;
+    padding-left: 18px !important;;
+    min-height:16px;
+}
+.brain {
+    background: url(/img/icons/brain.png) no-repeat;
+    padding-left: 18px !important;;
+    min-height:16px;
+}
+.gasmask {
+    background: url(/img/icons/gasmask.png) no-repeat;
+    padding-left: 18px !important;;
+    min-height:16px;
+}
+.guitar {
+    background: url(/img/icons/guitar.png) no-repeat;
+    padding-left: 18px !important;;
+    min-height:16px;
+}
+.fan {
+    background: url(/img/icons/fan.png) no-repeat;
+    padding-left: 18px !important;;
+    min-height:16px;
+}
+.pot {
+    background: url(/img/icons/pot.png) no-repeat;
+    padding-left: 18px !important;;
+    min-height:16px;
+}
+.tophat {
+    background: url(/img/icons/tophat.png) no-repeat;
+    padding-left: 18px !important;;
+    min-height:16px;
+}
+.shared {
+    background: url(/img/icons/shared.png) no-repeat;
+    padding-left: 18px !important;;
+    min-height:16px;
+}
+.prime {
+    background: url(/img/user/prime16.gif);
+    height:16px;
+    width:53px;
+    display:inline-block;
+}
+.prime span {
+    display:none;
+}
+.author_name .prime, h3 .prime  {
+    background: url(/img/user/prime24.gif);
+    height:24px;
+    width:80px;
 }
 
-.pages span.current {
-    background: #ddffdd;
+.cc h1, .cc h2, .cc h3 {
+    text-align:left;
+    font-weight:bold;
+    font-family: ToonatorFont, "Comic Sans MS";
 }
 
-.pages span.bg {
-    color: #888888;
+.cc h1 {
+    font-size:18pt;
 }
 
-/* Left menu */
+.cc h2 {
+    font-size:14pt;
+    margin-left: 5px;
+}
+
+.cc h3 {
+    font-size:12pt;
+}
+.cc p {
+    margin-left: 30px;
+}
+.cc ul {
+    margin: 0 50px;
+}
+
+.cc label {
+    display: inline-block;
+    width: 120px;
+}
+.cc label.check {
+    text-align: left;
+    display: inline;
+    margin-right: 20px;
+}
+
+#moderator_help .selected {
+    font-weight: bold;
+    color: #000000 !important;
+}
 
 ul.leftmenu {
     margin: 0 0 0 30px;
@@ -1003,7 +1669,6 @@ ul.leftmenu li a {
     color: #0000ff;
     text-decoration: none;
 }
-
 ul.leftmenu li a:hover {
     color: #0000ff;
     text-decoration: underline;
@@ -1014,27 +1679,45 @@ ul.leftmenu li a.selected {
     font-weight: bold;
 }
 
-/* Notify bar */
+.levelup_comment {
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    border: 1px dashed black;
+    padding: 5px;
+    background-color: #ffcccc;
+}
+
+a.nmenu {
+    color: #0000ff;
+    text-decoration: none;
+}
+a.nmenu:hover {
+    color: #0000ff;
+    text-decoration: underline;
+}
+
+a.nmenu.selected {
+    color: #000000;
+    font-weight: bold;
+}
 
 #notify_wrap {
     width: 1000px;
-    margin: 0 auto;
-    background: #FFFFED;
-    border-bottom: 1px solid #cccccc;
-    border-left: 1px solid #cccccc;
-    border-right: 1px solid #cccccc;
-    border-bottom-right-radius: 7px;
-    border-bottom-left-radius: 7px;
+    margin:0 auto;
+    background:#FFFFED;
+    border-bottom:1px solid #cccccc;
+    border-left:1px solid #cccccc;
+    border-right:1px solid #cccccc;
+    border-bottom-right-radius:7px;
+    border-bottom-left-radius:7px;
 }
-
 #notify_inner {
-    padding: 4px;
-    font-size: 12px;
-    text-align: center;
+    padding:4px;
+    font-size:12px;
+    text-align:center;
 }
-
 #notify_close {
-    float: right;
+    float:right;
     color: #000;
     font-size: 10px;
     text-decoration: none;
@@ -1046,42 +1729,9 @@ ul.leftmenu li a.selected {
     color: #ff0000;
 }
 
-/* Icons */
-
-.crown { background: url(/img/icons/crown.gif) no-repeat; padding-left: 18px; min-height: 16px; }
-.crownp { background: url(/img/icons/crownp.png) no-repeat; padding-left: 18px; min-height: 16px; }
-.crownw { background: url(/img/icons/crownw.png) no-repeat; padding-left: 18px; min-height: 16px; }
-.slowpoke { background: url(/img/icons/slowpoke.png) no-repeat; padding-left: 22px; min-height: 17px; }
-.brain { background: url(/img/icons/brain.png) no-repeat; padding-left: 18px; min-height: 16px; }
-.gasmask { background: url(/img/icons/gasmask.png) no-repeat; padding-left: 18px; min-height: 16px; }
-.guitar { background: url(/img/icons/guitar.png) no-repeat; padding-left: 18px; min-height: 16px; }
-.fan { background: url(/img/icons/fan.png) no-repeat; padding-left: 18px; min-height: 16px; }
-.pot { background: url(/img/icons/pot.png) no-repeat; padding-left: 18px; min-height: 16px; }
-.tophat { background: url(/img/icons/tophat.png) no-repeat; padding-left: 18px; min-height: 16px; }
-
-.prime {
-    background: url(/img/user/prime16.gif);
-    height: 16px;
-    width: 53px;
-    display: inline-block;
-}
-
-.prime span {
-    display: none;
-}
-
-.author_name .prime, h3 .prime {
-    background: url(/img/user/prime24.gif);
-    height: 24px;
-    width: 80px;
-}
-
-/* Registration / Auth */
-
 .reg_variant {
     list-style: none;
 }
-
 .reg_variant li {
     display: inline-block;
     width: 56px;
@@ -1089,12 +1739,10 @@ ul.leftmenu li a.selected {
     border-radius: 10px;
     border: 1px solid #eeeeee;
 }
-
 .reg_variant li:hover {
     border: 1px solid #ffffff;
     background: #ffffff;
 }
-
 .reg_variant li.active {
     border: 1px solid #cccccc;
     background: #ffffff;
@@ -1105,14 +1753,6 @@ ul.leftmenu li a.selected {
     cursor: pointer;
 }
 
-.levelup_comment {
-    border-radius: 6px;
-    border: 1px dashed black;
-    padding: 5px;
-    background-color: #ffcccc;
-}
-
-/* .sn styles */
 
 .sn h1 {
     font: 32pt ToonatorFont;
@@ -1150,7 +1790,7 @@ ul.leftmenu li a.selected {
     font: 12pt ToonatorFont;
 }
 
-.sn label p, .sn .label p {
+.sn label p, .sn .label p  {
     width: 250px;
     display: inline-block;
     color: #555555;
@@ -1169,11 +1809,9 @@ ul.leftmenu li a.selected {
     width: 400px;
     box-shadow: 0 0 2px #DDD inset;
 }
-
 .sn input:focus {
     outline: 0;
 }
-
 .sn .captcha_show {
     border: 1px solid #cccccc;
     border-radius: 5px;
@@ -1183,7 +1821,6 @@ ul.leftmenu li a.selected {
     display: inline-block;
     text-align: center;
 }
-
 .sn .captcha_show input {
     font: 24pt ToonatorFont;
     border-left: none;
@@ -1195,6 +1832,20 @@ ul.leftmenu li a.selected {
     padding-top: 10px;
 }
 
+.sn .label .vk-info {
+    display: inline-block;
+}
+
+.sn .label .vk-info .vk-avatar {
+    height: 50px;
+    width: 50px;
+    vertical-align: middle;
+}
+
+.sn .label .registered {
+    margin-top: 10px;
+}
+
 .sn .btn {
     border-radius: 5px;
     font: bold 10pt ToonatorFont;
@@ -1203,9 +1854,17 @@ ul.leftmenu li a.selected {
     height: auto;
 }
 
-.sn .btn.cancel { background: #ae6266; }
-.sn .btn.confirm { background: #a4cda7; }
-.sn .btn.info { background: #546eae; }
+.sn .btn.cancel {
+    background: #ae6266;
+}
+
+.sn .btn.confirm {
+    background: #a4cda7;
+}
+
+.sn .btn.info {
+    background: #546eae;
+}
 
 .sn .info-block {
     border-radius: 8px;
@@ -1223,8 +1882,6 @@ ul.leftmenu li a.selected {
     box-shadow: 0 0 2px #DDD inset;
     height: auto;
     background: #a4cda7;
-    cursor: pointer;
-    margin-top: 10px;
 }
 
 .sn button.complete[disabled] {
@@ -1236,8 +1893,7 @@ ul.leftmenu li a.selected {
     display: none;
 }
 
-.sn .login-popup .overlay,
-.sn .popup .overlay {
+.sn .login-popup .overlay, .sn .popup .overlay {
     overflow: auto;
     position: fixed;
     z-index: 999;
@@ -1249,27 +1905,19 @@ ul.leftmenu li a.selected {
 }
 
 .sn .login-wrapper {
-    position: fixed;
-    top: 50%;
+    position: relative;
     left: 50%;
-    transform: translate(-50%, -50%);
+    top: 50%;
     border: 1px solid #cccccc;
     width: 640px;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
     background: #ffffff;
     border-radius: 10px;
     padding: 20px;
-    z-index: 1001;
 }
 
-.sn .login-wrapper h2 {
-    text-align: center;
-    font: 24pt ToonatorFont;
-    margin: 5px 0;
-    border-bottom: 1px solid #eeeeee;
-}
-
-.sn .login-wrapper .close,
-.sn .popup .close {
+.sn .login-wrapper .close, .sn .popup .close {
     position: absolute;
     right: 10px;
     top: 10px;
@@ -1278,14 +1926,11 @@ ul.leftmenu li a.selected {
     color: #cccccc;
     font: 18pt Arial;
 }
-
 .sn .login-wrapper .close:hover {
     color: black;
 }
 
-.sn .signin-old-head,
-.sn .signin-using,
-.sn .signin-old-recover {
+.sn .signin-old-head, .sn .signin-using, .sn .signin-old-recover {
     text-align: center;
 }
 
@@ -1293,8 +1938,7 @@ ul.leftmenu li a.selected {
     font: 14pt ToonatorFont;
 }
 
-.sn .signin-old-head a,
-.sn .signin-old-recover a {
+.sn .signin-old-head a, .sn .signin-old-recover a {
     font: 12pt ToonatorFont;
 }
 
@@ -1322,10 +1966,18 @@ ul.leftmenu li a.selected {
     transition: max-height 0.1s;
 }
 
-.sn .popup {
+.sn .link-social .social img {
+    vertical-align: middle;
+}
+
+.sn .link-social .logged-in {
     display: none;
 }
 
+/* popup */
+.sn .popup {
+    display: none;
+}
 .sn .popup .overlay {
     overflow: auto;
     position: fixed;
@@ -1336,12 +1988,12 @@ ul.leftmenu li a.selected {
     left: 0;
     background: rgba(127,127,127,0.5);
 }
-
 .sn .popup .wrapper {
     position: relative;
     left: 50%;
     top: 50%;
     border: 1px solid #cccccc;
+    -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     background: #ffffff;
     border-radius: 10px;
@@ -1387,6 +2039,7 @@ ul.leftmenu li a.selected {
     font: 18pt Arial;
 }
 
+/* toon-chooser-popup */
 .sn .toon-chooser-popup .wrapper {
     width: 700px;
 }
@@ -1424,6 +2077,14 @@ ul.leftmenu li a.selected {
     color: #555555;
     background: inherit;
     font: 14pt ToonatorFont;
+}
+
+.my-avatar {
+    cursor: pointer;
+}
+
+.my-avatar.processing {
+    opacity: 0.5;
 }
 
 .sn .hints {
@@ -1472,4 +2133,98 @@ ul.leftmenu li a.selected {
     border-radius: 10px;
     padding: 10px;
     height: auto;
+}
+
+.sn .contest-apply .contest {
+    background: #eeeeee;
+    border-radius: 10px;
+    min-height: 100px;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+.sn .contest-apply .contest .preview {
+    float: left;
+    background: #ffffff;
+    width: 200px;
+    height: 100px;
+    border-radius: 5px;
+    margin-right: 10px;
+    overflow: hidden;
+}
+
+.sn .contest-apply .contest .info {
+    margin: 10px;
+}
+
+.sn .contest-apply .contest .title {
+    font: bold 14pt ToonatorFont;
+}
+
+.sn .contest-apply .contest .title a {
+    color: #152f43;
+    text-decoration: none;
+}
+
+.sn .contest-apply .contest .description {
+    margin: 5px 0;
+    font: 12pt ToonatorFont;
+}
+
+.sn .contest-apply .contest .date {
+    font: 9pt Arial;
+}
+
+.sn .contest-apply .contest .date .today {
+    font: bold 10pt Arial;
+}
+
+.sn .contest-apply .contest .rules {
+    clear: both;
+    padding: 10px 0;
+    font: 12pt ToonatorFont;
+    max-height: 300px;
+    overflow: auto;
+    opacity: 1;
+    transition: max-height 0.2s, opacity 0.2s, padding 0.2s, opacity 0.2s;
+}
+
+.sn .contest-apply .contest .rules.hidden {
+    clear: none;
+    max-height: 0;
+    overflow: hidden;
+    padding: 0;
+    opacity: 0;
+    transition: max-height 0.2s, opacity 0.2s, padding 0.2s, opacity 0.2s;
+}
+
+.sn .contest-apply .contest .rules ul {
+    list-style: circle;
+    margin: 10px 0 10px 20px;
+}
+
+.sn .contest-apply .contest .rules label {
+    font: bold 12pt ToonatorFont;
+}
+
+.sn .contest-apply .contest .apply {
+    text-align: right;
+}
+
+.sn .contest-apply .contest .apply button {
+    height: auto;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+.sn .contest-apply .applied {
+    margin: 50px 0;
+    text-align: center;
+}
+.sn .contest-apply .contest .sign-applied {
+    color: #1a2fa3;
+    font-style: italic;
+}
+.sn .contest-apply .contest .sign-accepted {
+    color: #1e8125;
+    font-style: italic;
 }
