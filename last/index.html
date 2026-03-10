@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Последние мульты - Мультатор</title>
+  <title>Олдскул - Мультатор. Нарисовать мультфильм. Анимация онлайн.</title>
   <link rel="shortcut icon" href="/img/favicon-eyes.png"/>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/css/font.css">
@@ -39,9 +39,9 @@
   <div id="content">
     <div class="content_left">
       <h1>
-        <a href="/last/" class="nmenu selected">Классика</a> |
-        <a href="/last/color/" class="nmenu">Цветные</a> |
-        <a href="/last/sandbox/" class="nmenu">Песочница</a>
+        <a href="/last/" class="nmenu selected"><nobr>Олдскул</nobr></a> |
+        <a href="/last/color/" class="nmenu"><nobr>Цветные</nobr></a> |
+        <a href="/last/sandbox/" class="nmenu"><nobr>Песочница</nobr></a>
       </h1>
       <div class="paginator" id="paginator-top"></div>
       <div class="toons_container">
@@ -96,14 +96,24 @@
     return `${SUPABASE_URL}/storage/v1/object/public/previews/${id}_${size}.gif`;
   }
 
+  function pluralFrames(count) {
+    if (count >= 50) return `<b>${count}</b> кадров`;
+    const mod10 = count % 10, mod100 = count % 100;
+    if (mod10 === 1 && mod100 !== 11) return `${count} кадр`;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return `${count} кадра`;
+    return `${count} кадров`;
+  }
+
+  function pluralComments(count) {
+    if (count === 0) return `<span class="grayb">Нет комментариев</span>`;
+    const mod10 = count % 10, mod100 = count % 100;
+    if (mod10 === 1 && mod100 !== 11) return `${count} комментарий`;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return `${count} комментария`;
+    return `${count} комментариев`;
+  }
+
   function toonCardHTML(toon, username) {
     const frames = Array.isArray(toon.frames) ? toon.frames : (toon.frames ? Object.values(toon.frames) : []);
-    const frameCount = frames.length;
-    const frameStr = frameCount >= 50 ? `<b>${frameCount}</b> кадров` : `${frameCount} кадров`;
-    const commentCount = toon.comment_count || 0;
-    const commentStr = commentCount > 0
-      ? `${commentCount} коммент${commentCount === 1 ? 'арий' : commentCount < 5 ? 'ария' : 'ариев'}`
-      : `<span class="grayb">Нет комментариев</span>`;
     const medal = toon.featured ? `<img class="toonmedal" src="/img/medal.gif"/>` : '';
     const title = escapeHTML(toon.title || 'Без названия');
     return `
@@ -117,9 +127,9 @@
         <div class="toon_name"><a class="link" href="/toon/${toon.id}">${title}</a></div>
         <div class="toon_tagline">
           <a href="/user/${escapeHTML(username)}" class="username foreign">${escapeHTML(username)}</a>,
-          ${frameStr}
+          ${pluralFrames(frames.length)}
         </div>
-        <div class="toon_tagline">${commentStr}</div>
+        <div class="toon_tagline">${pluralComments(toon.comment_count || 0)}</div>
       </div>`;
   }
 
@@ -170,8 +180,6 @@
     const userData = toon.user_id ? await rpc('get_user_by_id', { p_user_id: toon.user_id }) : null;
     const username = userData?.[0]?.username || 'unknown';
     const frames = Array.isArray(toon.frames) ? toon.frames : (toon.frames ? Object.values(toon.frames) : []);
-    const commentCount = toon.comment_count || 0;
-    const commentStr = commentCount > 0 ? `${commentCount} комментариев` : `<span class="grayb">Нет комментариев</span>`;
     const title = escapeHTML(toon.title || 'Без названия');
     document.getElementById('good-place-toon').innerHTML = `
       <div class="toon_preview large owned">
@@ -180,9 +188,9 @@
         <div class="toon_name"><a class="link" href="/toon/${toon.id}">${title}</a></div>
         <div class="toon_tagline">
           <a href="/user/${escapeHTML(username)}" class="username foreign">${escapeHTML(username)}</a>,
-          ${frames.length} кадров
+          ${pluralFrames(frames.length)}
         </div>
-        <div class="toon_tagline">${commentStr}</div>
+        <div class="toon_tagline">${pluralComments(toon.comment_count || 0)}</div>
       </div>`;
   }
 
