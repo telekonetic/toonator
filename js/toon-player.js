@@ -1,22 +1,23 @@
 /* =====================================================
    TOON PLAYER — HTML5 Canvas, ported from ActionScript
-   Faithful port of Player.as + ToolbarToon.as + Toolbar.as
-     - Wobbly black border around canvas (Player.repaintBack)
-     - Multicurve quadratic Bézier stroke rendering
-     - Oldschool brush polygon rendering
-     - oneFrame stroke-by-stroke reveal mode
-     - Sketchy toolbar: play/pause, scrub bar, slider knob,
-       expand button, fullscreen button, Toonator logo
-     - White toolbar background (black only in fullscreen)
-     - All toolbar jitter repaints at 100ms (10fps)
-     - Bar hidden when totalSteps < 10 (AS3 rule)
-     - FPS from saved settings, default 10
+   Pixel-perfect port of Player.as + ToolbarToon.as +
+   Toolbar.as + repaintBack() border logic.
+
+   Layout mirrors AS3 exactly:
+     Canvas:  600×300, inset 5px inside wobbly border
+     Toolbar: 610×40, y=310
+     placeRect starts as Rectangle(0,0,610,40)
+       RIGHT: logo (margin 5, ~60px wide)
+              fullscreen btn (margin 10, 20px wide)
+              expand btn (margin 10, 20px wide)
+       LEFT:  play/pause button (margin 5, 30px wide)
+       Remaining centre → scrub bar + slider at y=20
 ===================================================== */
 
 (function () {
   'use strict';
 
-  const r = n => Math.random() * n;
+  const rand = n => Math.random() * n;
 
   /* =====================================================
      MULTICURVE — ported from AS3 FrameV1/FrameV2
@@ -34,7 +35,7 @@
       my[i] = 0.5 * (sc[i+1].y + sc[i].y);
     }
     if (closed) {
-      mx[0] = 0.5*(sc[1].x+sc[0].x); my[0] = 0.5*(sc[1].y+sc[0].y);
+      mx[0] = 0.5*(sc[1].x+sc[0].x);   my[0] = 0.5*(sc[1].y+sc[0].y);
       mx[n-1] = 0.5*(sc[n-1].x+sc[n-2].x); my[n-1] = 0.5*(sc[n-1].y+sc[n-2].y);
     } else {
       mx[0] = sc[0].x; my[0] = sc[0].y;
@@ -65,12 +66,13 @@
       ctx.fillStyle = color; ctx.fill(); return;
     }
     ctx.beginPath();
-    ctx.strokeStyle = color; ctx.lineWidth = size; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = color; ctx.lineWidth = size;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     drawMulticurve(ctx, stroke.points, s, false);
     ctx.stroke();
   }
 
-  function drawFrame(ctx, frame, scale, strokeLimit) {
+  function renderFrameStrokes(ctx, frame, scale, strokeLimit) {
     if (!frame || !frame.strokes) return;
     const limit = (strokeLimit === undefined || strokeLimit < 0)
       ? frame.strokes.length : Math.min(strokeLimit + 1, frame.strokes.length);
@@ -78,147 +80,159 @@
   }
 
   /* =====================================================
-     WOBBLY BORDER — ported from Player.repaintBack()
-     Draws a sketchy black filled polygon around the canvas
-     with randomly jittered edges, then a white rect inside.
-     BW = border canvas width, BH = border canvas height
-     IW/IH = inner toon area, INSET = border thickness
-  ===================================================== */
-  function paintBorder(ctx, bw, bh, inset) {
-    ctx.clearRect(0, 0, bw, bh);
+     BORDER — exact port of Player.repaintBack()
 
-    // Black filled wobbly border shape
+     AS3 draws on the Player MovieClip's own graphics,
+     which is 610px wide (stage). The toon sprite sits
+     at x=5, y=5 inside it.
+
+     Steps:
+       Top:    t 0→1 step 0.05, x = t*(width+10), y = rand(3)
+       Right:  t 0→1 step 0.1,  x = width+8+rand(3), y = t*(height+8)
+       Bottom: t 1→0 step 0.05, x = t*(width+8), y = height+8+rand(3)
+       Left:   t 1→0 step 0.1,  x = rand(3), y = t*(height+8)
+       White rect at (5, 5, width, height)
+  ===================================================== */
+  function paintBorder(ctx, width, height) {
+    ctx.clearRect(0, 0, width + 14, height + 14);
+
     ctx.fillStyle = '#000';
     ctx.beginPath();
 
-    // Top edge (left→right)
-    ctx.moveTo(0, r(3));
-    for (let t = 0.05; t <= 1; t += 0.05)
-      ctx.lineTo(t * (bw + 10), r(3));
+    // Top edge
+    let t = 0;
+    ctx.moveTo(t * (width + 10), rand(3));
+    for (t = 0.05; t <= 1; t += 0.05)
+      ctx.lineTo(t * (width + 10), rand(3));
 
-    // Right edge (top→bottom)
-    for (let t = 0; t <= 1; t += 0.1)
-      ctx.lineTo(bw - r(3), t * (bh + 8));
+    // Right edge
+    for (t = 0; t <= 1; t += 0.1)
+      ctx.lineTo(width + 8 + rand(3), t * (height + 8));
 
-    // Bottom edge (right→left)
-    for (let t = 1; t >= 0; t -= 0.05)
-      ctx.lineTo(t * (bw + 8), bh - r(3));
+    // Bottom edge
+    for (t = 1; t >= 0; t -= 0.05)
+      ctx.lineTo(t * (width + 8), height + 8 + rand(3));
 
-    // Left edge (bottom→top)
-    for (let t = 1; t >= 0; t -= 0.1)
-      ctx.lineTo(r(3), t * (bh + 8));
+    // Left edge
+    for (t = 1; t >= 0; t -= 0.1)
+      ctx.lineTo(rand(3), t * (height + 8));
 
     ctx.closePath();
     ctx.fill();
 
-    // White inner rect (the actual canvas area)
+    // White inner rect — drawRect(5, 5, _width, _height)
     ctx.fillStyle = '#fff';
-    ctx.fillRect(inset, inset, bw - inset * 2, bh - inset * 2);
+    ctx.fillRect(5, 5, width, height);
   }
 
   /* =====================================================
-     TOOLBAR PAINTERS — black icons on white bg
-     All jitter with Math.random() on each 100ms repaint.
+     TOOLBAR PAINTERS
+     All coordinates match AS3 exactly.
+     Bar and slider are at y=20 (vertical centre of 40px toolbar).
+     Button is 30×30, placed at LEFT with margin 5 → x=5.
+     SizeButtons are 20×20.
   ===================================================== */
 
-  // Wobbly scrub bar — mirrors ToolbarToon.repaintBar()
-  function paintBar(ctx, x, y, w) {
-    ctx.save();
+  // Bar — exact port of ToolbarToon.repaintBar()
+  // bar.x = placeRect.x + 10, barWidth = placeRect.width - 20
+  // drawn at local y=20, fills 2px high (thin strip)
+  function paintBar(ctx, x, barWidth) {
+    const y    = 20;  // matches AS3 _loc5_ = 20
+    const w    = barWidth;
+    const nSeg = Math.floor(w / 30);
+
     ctx.fillStyle = '#000';
     ctx.beginPath();
-    ctx.moveTo(x, y + 2);
-    const steps = Math.max(2, Math.floor(w / 30));
-    for (let i = 1; i < steps; i++) ctx.lineTo(x + i*30 + r(10)-5, y + 2 - r(2));
-    ctx.lineTo(x + w, y + 2);
-    for (let i = steps-1; i >= 1; i--) ctx.lineTo(x + i*30 + r(10)-5, y + 3 + r(2));
+    ctx.moveTo(x, y);
+
+    // Top wobbly edge (left→right)
+    for (let i = 1; i < nSeg - 1; i++)
+      ctx.lineTo(x + i*30 + rand(10) - 5, y - rand(2));
+    ctx.lineTo(x + w, y);
+
+    // Bottom wobbly edge (right→left)
+    for (let i = nSeg - 1; i >= 1; i--)
+      ctx.lineTo(x + i*30 + rand(10) - 5, y + 1 + rand(2));
+
     ctx.closePath();
     ctx.fill();
-    ctx.restore();
   }
 
-  // Wobbly slider knob — mirrors ToolbarToon.repaintSlider()
-  // Black outer (~8px), white inner (~6px)
+  // Slider — exact port of ToolbarToon.repaintSlider()
+  // Two concentric wobbly circles at (cx, cy)
+  // Outer: black, r≈8+rand(1), step PI/8
+  // Inner: white, r≈6+rand(1), step PI/6
   function paintSlider(ctx, cx, cy) {
-    ctx.save();
     ctx.fillStyle = '#000';
     ctx.beginPath();
     for (let a = 0; a < Math.PI*2; a += Math.PI/8) {
-      const px = cx + Math.cos(a)*(8+r(1)), py = cy + Math.sin(a)*(8+r(1));
+      const px = cx + Math.cos(a)*(8+rand(1));
+      const py = cy + Math.sin(a)*(8+rand(1));
       a === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
     }
     ctx.closePath(); ctx.fill();
+
     ctx.fillStyle = '#fff';
     ctx.beginPath();
     for (let a = 0; a < Math.PI*2; a += Math.PI/6) {
-      const px = cx + Math.cos(a)*(6+r(1)), py = cy + Math.sin(a)*(6+r(1));
+      const px = cx + Math.cos(a)*(6+rand(1));
+      const py = cy + Math.sin(a)*(6+rand(1));
       a === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
     }
     ctx.closePath(); ctx.fill();
-    ctx.restore();
   }
 
-  // Pause icon — two wobbly rectangles, mirrors Button.repaint() mode=0
+  // Play button — exact port of Button.repaint() mode=1 (shows play ▶)
+  // 30×30 hit area, drawn in black
+  function paintPlayIcon(ctx, x, y) {
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.moveTo(x + 5 + rand(1), y + 5 + rand(1));
+    for (let i = 1; i < 4; i++)
+      ctx.lineTo(x + 5 + i*5 + rand(1), y + 5 + i*2.5 + rand(1));
+    for (let i = 2; i >= 0; i--)
+      ctx.lineTo(x + 5 + i*5 + rand(2), y + 5 + (6-i)*3 + rand(1));
+    ctx.closePath(); ctx.fill();
+  }
+
+  // Pause button — exact port of Button.repaint() mode=0 (shows pause ‖)
   function paintPauseIcon(ctx, x, y) {
-    ctx.save(); ctx.fillStyle = '#000';
+    ctx.fillStyle = '#000';
     for (let i = 0; i < 2; i++) {
       ctx.beginPath();
-      ctx.moveTo(x + 5 + i*10 + r(2)-1, y + 5);
-      for (let j = 1; j < 3; j++) ctx.lineTo(x + 4 - r(2) + i*10, y + 5 + j*6.6);
-      ctx.lineTo(x + 6 + i*10 + r(2)-1, y + 25);
-      for (let j = 2; j > 0; j--) ctx.lineTo(x + 6 + r(2) + i*10, y + 5 + j*6.6);
+      ctx.moveTo(x + 5 + i*10 + rand(2)-1, y + 5);
+      for (let j = 1; j < 3; j++) ctx.lineTo(x + 4 - rand(2) + i*10, y + 5 + j*6.6);
+      ctx.lineTo(x + 6 + i*10 + rand(2)-1, y + 25);
+      for (let j = 2; j > 0; j--) ctx.lineTo(x + 6 + rand(2) + i*10, y + 5 + j*6.6);
       ctx.closePath(); ctx.fill();
     }
-    ctx.restore();
   }
 
-  // Play icon — sketchy triangle, mirrors Button.repaint() mode=1
-  function paintPlayIcon(ctx, x, y) {
-    ctx.save(); ctx.fillStyle = '#000';
-    ctx.beginPath();
-    ctx.moveTo(x + 5 + r(1), y + 5 + r(1));
-    for (let i = 1; i < 4; i++) ctx.lineTo(x + 5 + i*5 + r(1), y + 5 + i*2.5 + r(1));
-    for (let i = 2; i >= 0; i--) ctx.lineTo(x + 5 + i*5 + r(2), y + 5 + (6-i)*3 + r(1));
-    ctx.closePath(); ctx.fill();
-    ctx.restore();
-  }
-
-  // Expand button — two L-corner arrows, mirrors SizeButton EXPAND
-  // Drawn as two sketchy L-shapes with arrowheads
+  // Expand button — port of SizeButton EXPAND (20×20)
+  // Two L-shapes with sketchy arrowheads, drawn in dark colour
   function paintExpandIcon(ctx, x, y) {
     ctx.save();
-    ctx.strokeStyle = '#888'; ctx.lineWidth = 2; ctx.lineCap = 'round';
-    // Top-right L
-    ctx.beginPath(); ctx.moveTo(x+12+r(1), y+2+r(1)); ctx.lineTo(x+18+r(1), y+2+r(1)); ctx.lineTo(x+18+r(1), y+8+r(1)); ctx.stroke();
-    // Bottom-left L
-    ctx.beginPath(); ctx.moveTo(x+2+r(1), y+12+r(1)); ctx.lineTo(x+2+r(1), y+18+r(1)); ctx.lineTo(x+8+r(1), y+18+r(1)); ctx.stroke();
+    ctx.strokeStyle = '#777'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    // Top-right bracket
+    ctx.beginPath(); ctx.moveTo(x+12+rand(1), y+rand(1)); ctx.lineTo(x+19+rand(1), y+rand(1)); ctx.lineTo(x+19+rand(1), y+8+rand(1)); ctx.stroke();
+    // Bottom-left bracket
+    ctx.beginPath(); ctx.moveTo(x+rand(1), y+12+rand(1)); ctx.lineTo(x+rand(1), y+19+rand(1)); ctx.lineTo(x+8+rand(1), y+19+rand(1)); ctx.stroke();
     ctx.restore();
   }
 
-  // Fullscreen button — corner brackets, mirrors SizeButton FULLSCREEN
+  // Fullscreen button — port of SizeButton FULLSCREEN (20×20)
+  // Corner brackets at all four corners
   function paintFullscreenIcon(ctx, x, y) {
     ctx.save();
-    ctx.strokeStyle = '#888'; ctx.lineWidth = 2; ctx.lineCap = 'round';
-    const corners = [[x,y],[x+20,y],[x,y+20],[x+20,y+20]];
-    const dirs    = [[1,1],[-1,1],[1,-1],[-1,-1]];
-    corners.forEach(([cx,cy],[dx,dy]) => {
-      ctx.beginPath();
-      ctx.moveTo(cx+dx*(r(1)), cy);
-      ctx.lineTo(cx+dx*7+r(1), cy+r(1));
-      ctx.moveTo(cx, cy+dy*(r(1)));
-      ctx.lineTo(cx+r(1), cy+dy*7+r(1));
-      ctx.stroke();
-    }, dirs);
-    ctx.restore();
-  }
-
-  // Toonator logo — sketchy text, mirrors ToonatorLogo placement
-  function paintLogo(ctx, x, y) {
-    ctx.save();
-    ctx.font         = 'bold 13px "Comic Sans MS", cursive';
-    ctx.fillStyle    = '#aaa';
-    ctx.textBaseline = 'middle';
-    ctx.textAlign    = 'right';
-    ctx.fillText('Toonator', x, y);
+    ctx.strokeStyle = '#777'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    // Top-left
+    ctx.beginPath(); ctx.moveTo(x+rand(1), y+8+rand(1)); ctx.lineTo(x+rand(1), y+rand(1)); ctx.lineTo(x+8+rand(1), y+rand(1)); ctx.stroke();
+    // Top-right
+    ctx.beginPath(); ctx.moveTo(x+12+rand(1), y+rand(1)); ctx.lineTo(x+20+rand(1), y+rand(1)); ctx.lineTo(x+20+rand(1), y+8+rand(1)); ctx.stroke();
+    // Bottom-left
+    ctx.beginPath(); ctx.moveTo(x+rand(1), y+12+rand(1)); ctx.lineTo(x+rand(1), y+20+rand(1)); ctx.lineTo(x+8+rand(1), y+20+rand(1)); ctx.stroke();
+    // Bottom-right
+    ctx.beginPath(); ctx.moveTo(x+12+rand(1), y+20+rand(1)); ctx.lineTo(x+20+rand(1), y+20+rand(1)); ctx.lineTo(x+20+rand(1), y+12+rand(1)); ctx.stroke();
     ctx.restore();
   }
 
@@ -233,44 +247,60 @@
     const fps        = cfg.playFPS || 10;
     const frameDelay = Math.round(1000 / fps);
 
-    // Logical dimensions — mirrors AS3 _movieWidth/_movieHeight
-    const W = 600, H = 300;
-    // Border inset — mirrors AS3: playerSprite.x=5, playerSprite.y=5
-    const INSET = 8;
-    // Border canvas is slightly larger to contain the wobbly edge
-    const BW = W + INSET * 2 + 4;
-    const BH = H + INSET * 2 + 4;
-    // Toolbar height — mirrors AS3 toolbar y=310, total SWF height ~350
-    const TB_H = 40;
+    // AS3 dimensions
+    const MOVIE_W = 600, MOVIE_H = 300;
+    // Border canvas: playerSprite sits at x=5,y=5, border wobbles ~8px outside
+    const BORDER_W = MOVIE_W + 14;  // 600 + 5 left + ~9 right wobble
+    const BORDER_H = MOVIE_H + 14;  // 300 + 5 top  + ~9 bottom wobble
+    // Toolbar: AS3 _width=610, height=40
+    const TB_W = 610, TB_H = 40;
 
     const frameCount = frames.length || 1;
     const oneFrame   = frameCount === 1;
     const totalSteps = oneFrame ? (frames[0].strokes || []).length : frameCount;
-    const showBar    = totalSteps >= 10;  // mirrors AS3 total < 10 → hide bar
+    const showBar    = totalSteps >= 10;  // AS3: hide bar if total < 10
 
-    /* ---- Layout (toolbar canvas coords) ---- */
-    const TB_W      = BW;             // toolbar same width as border canvas
-    const BTN_AREA  = 36;             // play/pause zone
-    const LOGO_W    = 75;             // "Toonator" text width
-    const FS_W      = 26;             // fullscreen icon
-    const EXP_W     = 26;             // expand icon
-    const RIGHT_PAD = LOGO_W + FS_W + EXP_W + 10;
-    const COUNTER_W = 80;
-    const BAR_L     = BTN_AREA + 8;
-    const BAR_R     = TB_W - RIGHT_PAD - COUNTER_W - 8;
-    const BAR_W     = Math.max(10, BAR_R - BAR_L);
-    const BAR_Y     = TB_H / 2;
+    /* ---- Toolbar layout — mirrors Toolbar.realign() exactly ----
+       placeRect starts as Rectangle(0, 0, 610, 40)
+       RIGHT items (consume from right edge):
+         logo:        width≈60, margin 5  → right edge moves left by 65
+         fullscreen:  width=20, margin 10 → right edge moves left by 30
+         expand:      width=20, margin 10 → right edge moves left by 30
+       LEFT items:
+         button:      width=30, margin 5  → left edge moves right by 35
+       Remaining placeRect is the bar zone.
+    ---- */
+    const LOGO_W  = 62;  // approximate rendered width of "Toonator" logo text
+    const SZ_BTN  = 20;  // SizeButton is 20×20
+
+    // Right side x positions (right-to-left placement)
+    const LOGO_X  = TB_W - LOGO_W - 5;                    // rightmost
+    const FS_X    = LOGO_X - SZ_BTN - 10;                 // fullscreen left of logo
+    const EXP_X   = FS_X  - SZ_BTN - 10;                  // expand left of fullscreen
+
+    // Left side
+    const BTN_X   = 5;   // button margin=5
+    const BTN_W   = 30;
+
+    // Bar zone: placeRect after left+right consumption
+    const placeLeft  = BTN_X + BTN_W + 5;   // 5(margin) + 30(btn) + 5 = 40
+    const placeRight = EXP_X - 10;          // expand x - its margin
+    // bar.x = placeRect.x + 10, barWidth = placeRect.width - 20
+    const BAR_X    = placeLeft + 10;
+    const BAR_W    = Math.max(10, (placeRight - placeLeft) - 20);
+    const BAR_Y    = 20;  // AS3: slider.y = 20, bar drawn at y=20
 
     /* ---- DOM ---- */
     root.innerHTML = '';
     root.style.cssText = 'display:inline-block;line-height:0;font-size:0;';
 
-    // Border canvas — contains the wobbly frame + toon drawn on top
+    // Border + toon canvas
     const borderCanvas = document.createElement('canvas');
-    borderCanvas.width  = BW;
-    borderCanvas.height = BH;
+    borderCanvas.width  = BORDER_W;
+    borderCanvas.height = BORDER_H;
     borderCanvas.style.cssText = [
-      'display:block', 'width:100%', 'max-width:' + BW + 'px',
+      'display:block', 'width:100%',
+      'max-width:' + BORDER_W + 'px',
       'cursor:pointer', 'background:#000',
     ].join(';');
 
@@ -279,7 +309,8 @@
     tbCanvas.width  = TB_W;
     tbCanvas.height = TB_H;
     tbCanvas.style.cssText = [
-      'display:block', 'width:100%', 'max-width:' + TB_W + 'px',
+      'display:block', 'width:100%',
+      'max-width:' + TB_W + 'px',
       'cursor:default', 'background:#fff',
     ].join(';');
 
@@ -296,16 +327,19 @@
     let animTimer       = null;
     let sliderDragging  = false;
     let sliderRatio     = 0;
-    let isFullscreen    = false;
 
-    /* ---- Render toon onto border canvas ---- */
+    /* ---- Render toon ---- */
     function renderToon() {
-      // Repaint border every frame (jitter) then draw toon on top
-      paintBorder(bCtx, BW, BH, INSET);
+      // Repaint wobbly border (jitters every call)
+      paintBorder(bCtx, MOVIE_W, MOVIE_H);
+      // Draw toon inside the white rect at (5,5)
       bCtx.save();
-      bCtx.translate(INSET, INSET);
-      if (oneFrame) drawFrame(bCtx, frames[0], W/600, lastShownStroke);
-      else          drawFrame(bCtx, frames[curFrame], W/600, -1);
+      bCtx.beginPath();
+      bCtx.rect(5, 5, MOVIE_W, MOVIE_H);
+      bCtx.clip();
+      bCtx.translate(5, 5);
+      if (oneFrame) renderFrameStrokes(bCtx, frames[0], 1, lastShownStroke);
+      else          renderFrameStrokes(bCtx, frames[curFrame], 1, -1);
       bCtx.restore();
     }
 
@@ -315,41 +349,47 @@
       tbCtx.fillStyle = '#fff';
       tbCtx.fillRect(0, 0, TB_W, TB_H);
 
-      // Play/Pause button
-      const btnY = TB_H / 2 - 15;
-      if (playing) paintPauseIcon(tbCtx, 4, btnY);
-      else         paintPlayIcon(tbCtx, 4, btnY);
+      // Play/Pause button at x=BTN_X, vertically centred (30×30 → y=5)
+      if (playing) paintPauseIcon(tbCtx, BTN_X, 5);
+      else         paintPlayIcon(tbCtx,  BTN_X, 5);
 
-      // Scrub bar + slider
+      // Scrub bar + slider (hidden if totalSteps < 10)
       if (showBar) {
-        paintBar(tbCtx, BAR_L, BAR_Y - 2, BAR_W);
-        paintSlider(tbCtx, BAR_L + sliderRatio * BAR_W, BAR_Y);
+        paintBar(tbCtx, BAR_X, BAR_W);
+        paintSlider(tbCtx, BAR_X + sliderRatio * BAR_W, BAR_Y);
       }
 
-      // Frame counter (between bar and right icons)
+      // Frame / stroke counter — just right of bar
       const step  = oneFrame ? Math.max(0, lastShownStroke) : curFrame;
       const label = (step + 1) + ' / ' + totalSteps + (oneFrame ? ' strokes' : '');
-      tbCtx.fillStyle = '#999'; tbCtx.font = '10px Tahoma,sans-serif';
-      tbCtx.textAlign = 'right'; tbCtx.textBaseline = 'middle';
-      tbCtx.fillText(label, BAR_R + COUNTER_W + 4, TB_H / 2);
+      tbCtx.fillStyle    = '#999';
+      tbCtx.font         = '10px Tahoma, sans-serif';
+      tbCtx.textAlign    = 'left';
+      tbCtx.textBaseline = 'middle';
+      tbCtx.fillText(label, BAR_X + BAR_W + 6, BAR_Y);
 
-      // Right-side icons: expand, fullscreen, logo
-      const rightStart = TB_W - LOGO_W - FS_W - EXP_W - 8;
-      paintExpandIcon(tbCtx,     rightStart,           TB_H/2 - 10);
-      paintFullscreenIcon(tbCtx, rightStart + EXP_W,   TB_H/2 - 10);
-      paintLogo(tbCtx, TB_W - 6, TB_H / 2);
+      // Right icons
+      paintExpandIcon(tbCtx,     EXP_X, TB_H/2 - 10);
+      paintFullscreenIcon(tbCtx, FS_X,  TB_H/2 - 10);
+
+      // Logo — "Toonator" in the original hand-drawn font style
+      tbCtx.font         = 'bold 14px "Comic Sans MS", cursive';
+      tbCtx.fillStyle    = '#bbb';
+      tbCtx.textAlign    = 'left';
+      tbCtx.textBaseline = 'middle';
+      tbCtx.fillText('Toonator', LOGO_X, TB_H/2);
     }
 
-    /* ---- 100ms jitter timer ---- */
+    /* ---- 100ms jitter interval — mirrors AS3 ENTER_FRAME at 10fps ---- */
     const tbTimer = setInterval(renderToolbar, 100);
 
-    /* ---- Sync slider ---- */
+    /* ---- Slider sync ---- */
     function syncSlider() {
       const step = oneFrame ? Math.max(0, lastShownStroke) : curFrame;
       sliderRatio = totalSteps <= 1 ? 0 : step / (totalSteps - 1);
     }
 
-    /* ---- Playback ticks ---- */
+    /* ---- Playback ---- */
     function tickMulti() {
       renderToon(); syncSlider();
       curFrame = (curFrame + 1) % frameCount;
@@ -367,8 +407,7 @@
     function startPlay() {
       if (playing) return;
       if (oneFrame) {
-        const total = (frames[0].strokes || []).length;
-        if (lastShownStroke >= total - 1) lastShownStroke = -1;
+        if (lastShownStroke >= (frames[0].strokes || []).length - 1) lastShownStroke = -1;
       }
       playing = true;
       animTimer = setInterval(oneFrame ? tickOneFrame : tickMulti, frameDelay);
@@ -379,7 +418,7 @@
     }
 
     /* ---- Seek ---- */
-    function seekTo(ratio) {
+    function seekToRatio(ratio) {
       const clamped = Math.max(0, Math.min(1, ratio));
       sliderRatio   = clamped;
       const step    = Math.round(clamped * (totalSteps - 1));
@@ -387,67 +426,54 @@
       renderToon();
     }
 
-    function ratioFromEvent(e, el) {
-      const rect   = el.getBoundingClientRect();
-      const scaleX = TB_W / rect.width;
-      return ((e.clientX - rect.left) * scaleX - BAR_L) / BAR_W;
-    }
-
-    /* ---- Fullscreen ---- */
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        root.requestFullscreen && root.requestFullscreen();
-      } else {
-        document.exitFullscreen && document.exitFullscreen();
-      }
-    }
-
-    document.addEventListener('fullscreenchange', () => {
-      isFullscreen = !!document.fullscreenElement;
-    });
-
-    /* ---- Toolbar interactions ---- */
-    tbCanvas.addEventListener('click', (e) => {
+    function mouseRatioOnBar(e) {
       const rect   = tbCanvas.getBoundingClientRect();
       const scaleX = TB_W / rect.width;
-      const mx     = (e.clientX - rect.left) * scaleX;
-      const rightStart = TB_W - LOGO_W - FS_W - EXP_W - 8;
+      return ((e.clientX - rect.left) * scaleX - BAR_X) / BAR_W;
+    }
 
-      if (mx < BTN_AREA) {
+    function mouseXOnTb(e) {
+      const rect   = tbCanvas.getBoundingClientRect();
+      const scaleX = TB_W / rect.width;
+      return (e.clientX - rect.left) * scaleX;
+    }
+
+    /* ---- Events ---- */
+    tbCanvas.addEventListener('click', (e) => {
+      const mx = mouseXOnTb(e);
+      if (mx >= BTN_X && mx < BTN_X + BTN_W + 10) {
         if (playing) stopPlay(); else startPlay();
-      } else if (showBar && mx >= BAR_L && mx <= BAR_R + COUNTER_W) {
-        stopPlay(); seekTo(ratioFromEvent(e, tbCanvas));
-      } else if (mx >= rightStart && mx < rightStart + EXP_W) {
-        // expand — no-op in embed context, mirrors AS3 onExpand
-      } else if (mx >= rightStart + EXP_W && mx < rightStart + EXP_W + FS_W) {
-        toggleFullscreen();
+      } else if (showBar && mx >= BAR_X && mx <= BAR_X + BAR_W) {
+        stopPlay(); seekToRatio(mouseRatioOnBar(e));
+      } else if (mx >= EXP_X && mx < EXP_X + SZ_BTN) {
+        // expand — no-op in web embed
+      } else if (mx >= FS_X && mx < FS_X + SZ_BTN) {
+        if (!document.fullscreenElement) root.requestFullscreen && root.requestFullscreen();
+        else document.exitFullscreen && document.exitFullscreen();
       }
     });
 
     tbCanvas.addEventListener('mousedown', (e) => {
-      const rect   = tbCanvas.getBoundingClientRect();
-      const scaleX = TB_W / rect.width;
-      const mx     = (e.clientX - rect.left) * scaleX;
-      if (!showBar || mx < BAR_L || mx > BAR_R) return;
-      sliderDragging = true; stopPlay(); seekTo(ratioFromEvent(e, tbCanvas));
+      const mx = mouseXOnTb(e);
+      if (!showBar || mx < BAR_X || mx > BAR_X + BAR_W) return;
+      sliderDragging = true; stopPlay(); seekToRatio(mouseRatioOnBar(e));
     });
 
     document.addEventListener('mousemove', (e) => {
-      if (sliderDragging) seekTo(ratioFromEvent(e, tbCanvas));
+      if (sliderDragging) seekToRatio(mouseRatioOnBar(e));
     });
     document.addEventListener('mouseup', () => { sliderDragging = false; });
 
-    borderCanvas.addEventListener('click', () => {
-      if (playing) stopPlay(); else startPlay();
-    });
+    borderCanvas.addEventListener('click', () => { if (playing) stopPlay(); else startPlay(); });
 
-    /* ---- Init ---- */
+    /* ---- Init — mirrors AS3 checkComplete → showPosition(0) ---- */
     if (oneFrame) lastShownStroke = (frames[0].strokes || []).length - 1;
     else          curFrame = 0;
     syncSlider();
     renderToon();
     renderToolbar();
 
+    // Auto-play multi-frame (mirrors AS3: if (!isPaused) play())
     if (frameCount > 1) startPlay();
 
     /* ---- Public API ---- */
