@@ -1128,30 +1128,21 @@ document.addEventListener('focusout', (e) => {
   }
 });
 
-const settingsBtn   = document.getElementById('btnSettings');
-const settingsPanel = document.getElementById('settingsPanel');
-
-function positionPanel() {
-  const r = settingsBtn.getBoundingClientRect();
-  settingsPanel.style.left = (r.right - settingsPanel.offsetWidth) + 'px';
-  settingsPanel.style.top  = (r.top - settingsPanel.offsetHeight - 6) + 'px';
-}
+const settingsBtn     = document.getElementById('btnSettings');
+const settingsOverlay = document.getElementById('settingsOverlay');
+const settingsPanel   = document.getElementById('settingsPanel');
 
 settingsBtn.addEventListener('click', () => {
-  settingsPanel.classList.toggle('open');
-  if (settingsPanel.classList.contains('open')) positionPanel();
+  settingsOverlay.classList.toggle('open');
 });
 
 document.getElementById('settingsClose').addEventListener('click', () => {
-  settingsPanel.classList.remove('open');
+  settingsOverlay.classList.remove('open');
 });
 
-document.addEventListener('mousedown', (e) => {
-  if (settingsPanel.classList.contains('open')
-      && !settingsPanel.contains(e.target)
-      && e.target !== settingsBtn) {
-    settingsPanel.classList.remove('open');
-  }
+// click the dim area outside the panel to close
+settingsOverlay.addEventListener('mousedown', (e) => {
+  if (e.target === settingsOverlay) settingsOverlay.classList.remove('open');
 });
 
 document.getElementById('settingOldschool').addEventListener('change', e => {

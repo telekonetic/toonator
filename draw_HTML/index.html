@@ -65,70 +65,71 @@ canvas {
 
 </div>
 
-<!-- Settings panel -->
-<div id="settingsPanel">
-  <div id="settingsHeader">
-    <span id="settingsTitle">Settings</span>
-    <span id="settingsClose">&#x2715;</span>
-  </div>
+<!-- Settings overlay + panel -->
+<div id="settingsOverlay">
+  <div id="settingsPanel">
+    <div id="settingsHeader">
+      <span id="settingsTitle">Settings</span>
+      <span id="settingsClose">&#x2715;</span>
+    </div>
 
-  <div class="settingsGroup">
-    <div class="settingsGroupLabel">BRUSH</div>
-    <div class="settingsRow">
-      <span>Oldschool brush<span class="settingsHint">(type "old")</span></span>
-      <input type="checkbox" id="settingOldschool">
-    </div>
-    <div class="settingsRow">
-      <span>Curve smoothing</span>
-      <input type="checkbox" id="settingSmoothing" checked>
-    </div>
-    <div class="settingsRow">
-      <span>Simplify<span class="settingsHint">(0 = off)</span></span>
-      <div class="settingsSliderWrap">
-        <input type="range" id="settingSimplify" min="0" max="20" step="1" value="5">
-        <span class="settingsVal" id="settingSimplifyVal">5</span>
+    <div class="settingsGroup">
+      <div class="settingsGroupLabel">BRUSH</div>
+      <div class="settingsRow">
+        <span>Oldschool brush<span class="settingsHint">(type "old")</span></span>
+        <input type="checkbox" id="settingOldschool">
+      </div>
+      <div class="settingsRow">
+        <span>Curve smoothing</span>
+        <input type="checkbox" id="settingSmoothing" checked>
+      </div>
+      <div class="settingsRow">
+        <span>Simplify<span class="settingsHint">(0 = off)</span></span>
+        <div class="settingsSliderWrap">
+          <input type="range" id="settingSimplify" min="0" max="20" step="1" value="5">
+          <span class="settingsVal" id="settingSimplifyVal">5</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="settingsGroup">
-    <div class="settingsGroupLabel">ONION SKIN</div>
-    <div class="settingsRow">
-      <span>Enable onion skin</span>
-      <input type="checkbox" id="settingOnion" checked>
-    </div>
-    <div class="settingsRow">
-      <span>2nd previous frame</span>
-      <input type="checkbox" id="settingOnion2" checked>
-    </div>
-    <div class="settingsRow">
-      <span>Frame -1 opacity</span>
-      <div class="settingsSliderWrap">
-        <input type="range" id="settingAlpha1" min="0" max="100" step="5" value="30">
-        <span class="settingsVal" id="settingAlpha1Val">30%</span>
+    <div class="settingsGroup">
+      <div class="settingsGroupLabel">ONION SKIN</div>
+      <div class="settingsRow">
+        <span>Enable onion skin</span>
+        <input type="checkbox" id="settingOnion" checked>
+      </div>
+      <div class="settingsRow">
+        <span>2nd previous frame</span>
+        <input type="checkbox" id="settingOnion2" checked>
+      </div>
+      <div class="settingsRow">
+        <span>Frame -1 opacity</span>
+        <div class="settingsSliderWrap">
+          <input type="range" id="settingAlpha1" min="0" max="100" step="5" value="30">
+          <span class="settingsVal" id="settingAlpha1Val">30%</span>
+        </div>
+      </div>
+      <div class="settingsRow">
+        <span>Frame -2 opacity</span>
+        <div class="settingsSliderWrap">
+          <input type="range" id="settingAlpha2" min="0" max="100" step="5" value="10">
+          <span class="settingsVal" id="settingAlpha2Val">10%</span>
+        </div>
       </div>
     </div>
-    <div class="settingsRow">
-      <span>Frame -2 opacity</span>
-      <div class="settingsSliderWrap">
-        <input type="range" id="settingAlpha2" min="0" max="100" step="5" value="10">
-        <span class="settingsVal" id="settingAlpha2Val">10%</span>
-      </div>
-    </div>
-  </div>
 
-  <div class="settingsGroup">
-    <div class="settingsGroupLabel">PLAYBACK</div>
-    <div class="settingsRow">
-      <span>Speed (FPS)</span>
-      <div class="settingsSliderWrap">
-        <input type="range" id="settingFPS" min="1" max="30" step="1" value="10">
-        <span class="settingsVal" id="settingFPSVal">10</span>
+    <div class="settingsGroup">
+      <div class="settingsGroupLabel">PLAYBACK</div>
+      <div class="settingsRow">
+        <span>Speed (FPS)</span>
+        <div class="settingsSliderWrap">
+          <input type="range" id="settingFPS" min="1" max="30" step="1" value="10">
+          <span class="settingsVal" id="settingFPSVal">10</span>
+        </div>
       </div>
     </div>
   </div>
 </div>
-
 
 <!-- Save dialog -->
 <div id="saveDialog" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
