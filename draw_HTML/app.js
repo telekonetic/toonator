@@ -806,7 +806,7 @@ document.getElementById("btnPause").addEventListener("click", () => {
 ===================================================== */
 
 function setActiveTool(btnId) {
-  document.querySelectorAll('#btnPencil, #btnEraser, #btnEyedropper, #btnOldschool').forEach(btn => {
+  document.querySelectorAll('#btnPencil, #btnEraser, #btnEyedropper').forEach(btn => {
     btn.classList.remove('btnActive');
   });
   document.getElementById(btnId).classList.add('btnActive');
@@ -835,13 +835,12 @@ document.getElementById("btnEyedropper").addEventListener("click", () => {
   setActiveTool(eyedropperActive ? "btnEyedropper" : "btnPencil");
 });
 
-// NEW: Oldschool brush mode button (add id="btnOldschool" to your HTML)
-document.getElementById("btnOldschool").addEventListener("click", () => {
+// NEW: Oldschool brush mode toggled by typing "old" — no button needed
+function switchOldschool() {
   oldschoolMode = !oldschoolMode;
   eyedropperActive = false;
   canvas.style.cursor = "default";
-  setActiveTool(oldschoolMode ? "btnOldschool" : "btnPencil");
-});
+}
 
 canvas.addEventListener("click", (e) => {
   if (!eyedropperActive) return;
@@ -885,7 +884,7 @@ document.addEventListener("keydown",(e)=>{
   lastThreeKeys[1] = lastThreeKeys[2];
   lastThreeKeys[2] = e.key.charCodeAt(0);
   if (lastThreeKeys[0] === 111 && lastThreeKeys[1] === 108 && lastThreeKeys[2] === 100) {
-    document.getElementById("btnOldschool").click();
+    switchOldschool();
   }
 
   switch(e.key.toLowerCase()){
