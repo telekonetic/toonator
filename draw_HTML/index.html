@@ -71,34 +71,36 @@ canvas {
     <span id="settingsTitle">Settings</span>
     <span id="settingsClose">&#x2715;</span>
   </div>
+
   <div class="settingsGroup">
     <div class="settingsGroupLabel">BRUSH</div>
-    <label class="settingsRow">
-      <span>Oldschool brush <span class="settingsHint">(type "old")</span></span>
+    <div class="settingsRow">
+      <span>Oldschool brush<span class="settingsHint">(type "old")</span></span>
       <input type="checkbox" id="settingOldschool">
-    </label>
-    <label class="settingsRow">
+    </div>
+    <div class="settingsRow">
       <span>Curve smoothing</span>
       <input type="checkbox" id="settingSmoothing" checked>
-    </label>
+    </div>
     <div class="settingsRow">
-      <span>Simplify tolerance <span class="settingsHint">(0 = off)</span></span>
+      <span>Simplify<span class="settingsHint">(0 = off)</span></span>
       <div class="settingsSliderWrap">
         <input type="range" id="settingSimplify" min="0" max="20" step="1" value="5">
         <span class="settingsVal" id="settingSimplifyVal">5</span>
       </div>
     </div>
   </div>
+
   <div class="settingsGroup">
     <div class="settingsGroupLabel">ONION SKIN</div>
-    <label class="settingsRow">
+    <div class="settingsRow">
       <span>Enable onion skin</span>
       <input type="checkbox" id="settingOnion" checked>
-    </label>
-    <label class="settingsRow">
-      <span>Show 2nd previous frame</span>
+    </div>
+    <div class="settingsRow">
+      <span>2nd previous frame</span>
       <input type="checkbox" id="settingOnion2" checked>
-    </label>
+    </div>
     <div class="settingsRow">
       <span>Frame -1 opacity</span>
       <div class="settingsSliderWrap">
@@ -114,6 +116,7 @@ canvas {
       </div>
     </div>
   </div>
+
   <div class="settingsGroup">
     <div class="settingsGroupLabel">PLAYBACK</div>
     <div class="settingsRow">
@@ -125,6 +128,7 @@ canvas {
     </div>
   </div>
 </div>
+
 
 <!-- Save dialog -->
 <div id="saveDialog" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">

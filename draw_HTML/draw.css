@@ -264,7 +264,6 @@ canvas {
   background: url('./graphics/settings.svg') no-repeat center center;
   background-size: 100% 100%;
 }
-
 #btnSettings:empty::before {
   content: '\2699';
   font-size: 16px;
@@ -274,28 +273,35 @@ canvas {
   color: #444;
   line-height: 1;
 }
+#btnSettings:hover { opacity: 0.7; }
+
 
 /* =====================================================
    SETTINGS PANEL
+   Structure mirrors save dialog exactly:
+   - position:fixed, background:#555555, border-radius:8px, padding:24px 28px, width:340px
+   - each row: display:flex, align-items:center, margin-bottom:12px
+   - label: width:100px, color:#ddd
+   - control: flex:1
 ===================================================== */
 
 #settingsPanel {
   display: none;
   position: fixed;
   z-index: 9000;
-  width: 340px;
   background: #555555;
   border-radius: 8px;
   padding: 24px 28px;
+  width: 340px;
   font-family: Arial, sans-serif;
   font-size: 13px;
   color: #fff;
+  box-sizing: border-box;
   box-shadow: 0 4px 24px rgba(0,0,0,0.45);
 }
-#settingsPanel.open {
-  display: block;
-}
+#settingsPanel.open { display: block; }
 
+/* header — title + close X */
 #settingsHeader {
   display: flex;
   align-items: center;
@@ -311,52 +317,49 @@ canvas {
   cursor: pointer;
   color: #ddd;
   font-size: 15px;
-  line-height: 1;
   padding: 2px 6px;
   border-radius: 3px;
 }
-#settingsClose:hover {
-  background: rgba(0,0,0,0.2);
-}
+#settingsClose:hover { background: rgba(0,0,0,0.2); }
 
-.settingsGroup {
-  border-top: 1px solid rgba(0,0,0,0.2);
-  padding-top: 12px;
-  margin-bottom: 4px;
-}
-.settingsGroup:first-of-type {
-  border-top: none;
-  padding-top: 0;
-}
-
+/* section label row — e.g. "BRUSH", "ONION SKIN" */
 .settingsGroupLabel {
+  width: 100px;
   font-size: 10px;
   letter-spacing: 1.5px;
   color: rgba(255,255,255,0.45);
   margin-bottom: 10px;
+  margin-top: 4px;
 }
 
+/* divider between groups — matches the visual rhythm of the save dialog */
+.settingsGroup + .settingsGroup {
+  border-top: 1px solid rgba(0,0,0,0.2);
+  padding-top: 4px;
+  margin-top: 4px;
+}
+
+/* every row: flex, aligned center, 12px gap below — identical to save dialog rows */
 .settingsRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   margin-bottom: 12px;
-  gap: 12px;
 }
-label.settingsRow {
-  cursor: pointer;
-}
+label.settingsRow { cursor: pointer; }
+
+/* label column — exactly width:100px, color:#ddd like save dialog */
 .settingsRow > span {
   width: 100px;
+  min-width: 100px;
   color: #ddd;
-  font-size: 13px;
-  flex-shrink: 0;
 }
 .settingsHint {
+  display: block;
   color: rgba(255,255,255,0.35);
-  font-size: 11px;
+  font-size: 10px;
 }
 
+/* checkbox — flush right like save dialog draft row */
 .settingsRow input[type=checkbox] {
   width: 16px;
   height: 16px;
@@ -364,6 +367,7 @@ label.settingsRow {
   cursor: pointer;
 }
 
+/* slider + value fill flex:1 — same as text inputs in save dialog */
 .settingsSliderWrap {
   display: flex;
   align-items: center;
@@ -376,8 +380,9 @@ label.settingsRow {
   cursor: pointer;
 }
 
+/* value readout — #ffcc88 matches saveStatus color in save dialog */
 .settingsVal {
-  width: 32px;
+  width: 30px;
   text-align: right;
   color: #ffcc88;
   font-size: 11px;
