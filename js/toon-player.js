@@ -230,7 +230,7 @@
       'display:block', 'width:100%',
       'max-width:' + TB_W + 'px',
       'cursor:default', 'background:#fff',
-      'border-top:2px solid #000',
+      'border-top:2px solid #00',
     ].join(';');
 
     root.appendChild(borderCanvas);
@@ -275,9 +275,9 @@
         paintSlider(tbCtx, BAR_X + sliderRatio * BAR_W, BAR_Y);
       }
 
-      // Logo — /img/toonator.svg native 155×22, rendered to fill reserved width
+      // Logo — /img/toonator.svg native 155×22, scaled to 90px wide keeping aspect ratio
       if (logoImg.complete && logoImg.naturalWidth > 0) {
-        const lh = 22, lw = 90;
+        const lw = 90, lh = Math.round(90 * 22 / 155); // ≈13px
         tbCtx.drawImage(logoImg, LOGO_X, Math.round(TB_H/2 - lh/2), lw, lh);
       }
     }
