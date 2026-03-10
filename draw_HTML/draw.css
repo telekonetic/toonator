@@ -160,7 +160,7 @@ canvas {
 #btnSave   { position: absolute; width: 24px; height: 24px; left: 47.5px; top: 34.5px; cursor: pointer; background: url('./graphics/save.svg') no-repeat center center; background-size: 100% 100%; }
 #btnPencil { position: absolute; width: 24px; height: 24px; left: 16.5px; top: 62.5px; cursor: pointer; background: url('./graphics/pencil.svg') no-repeat center center; background-size: 100% 100%; }
 #btnEraser { position: absolute; width: 24px; height: 24px; left: 47.5px; top: 62px;   cursor: pointer; background: url('./graphics/eraser.svg') no-repeat center center; background-size: 100% 100%; }
-#btnSettings { position: absolute; width: 24px; height: 24px; left: 570px; top: 62px; cursor: pointer; background: url('./graphics/settings.svg') no-repeat center center; background-size: 100% 100%;}
+#btnSettings { position: absolute; width: 24px; height: 24px; right: 6px; top: 62px; cursor: pointer; background: url('./graphics/settings.svg') no-repeat center center; background-size: 100% 100%;}
 #btnSize1, #btnSize2, #btnSize3, #btnSize4, #btnSize5 {
   position: absolute;
   width: 24px;
