@@ -1,6 +1,11 @@
 {
+  "trailingSlash": false,
   "rewrites": [
     { "source": "/toon/:id", "destination": "/api/toon/[id]" },
-    { "source": "/user/:username", "destination": "/api/user/[username]" }
+    { "source": "/toon/:id/", "destination": "/api/toon/[id]" },
+    { "source": "/user/:username", "destination": "/api/user/[username]" },
+    { "source": "/user/:username/", "destination": "/api/user/[username]" },
+    { "source": "/user/:username/:page", "destination": "/api/user/[username]" },
+    { "source": "/user/:username/:page/", "destination": "/api/user/[username]" }
   ]
 }

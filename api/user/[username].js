@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   const { username, page: pageParam } = req.query;
-  const decodedUsername = decodeURIComponent(username);
-  const page = parseInt(pageParam || '1');
+  const decodedUsername = decodeURIComponent(username).replace(/\/+$/, '');
+  const page = parseInt((pageParam || '1').toString().replace(/\/+$/, '')) || 1;
 
   const html = getProfileHTML(decodedUsername, page);
   res.setHeader('Content-Type', 'text/html;charset=UTF-8');
@@ -19,12 +19,8 @@ function getProfileHTML(username, page) {
   <link rel="stylesheet" href="/css/font.css">
   <link rel="stylesheet" href="/css/images_ru.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
   <script>
-    const { createClient } = supabase;
-    const db = createClient(
-      'https://ytyhhmwnnlkhhpvsurlm.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0'
-    );
     const PROFILE_USERNAME = ${JSON.stringify(username)};
     const CURRENT_PAGE = ${page};
     const PER_PAGE = 12;
@@ -32,13 +28,15 @@ function getProfileHTML(username, page) {
   <script src="/js/auth.js"></script>
   <script>
     async function loadIncludes() {
-      const header = await fetch('/includes/header.html').then(r => r.text());
-      const footer = await fetch('/includes/footer.html').then(r => r.text());
-      const donate = await fetch('/includes/donate.html').then(r => r.text());
-      const modal  = await fetch('/includes/auth-modal.html').then(r => r.text());
-      document.getElementById('donate_placeholder').innerHTML = donate;
+      const [header, footer, donate, modal] = await Promise.all([
+        fetch('/includes/header.html').then(r => r.text()),
+        fetch('/includes/footer.html').then(r => r.text()),
+        fetch('/includes/donate.html').then(r => r.text()),
+        fetch('/includes/auth-modal.html').then(r => r.text())
+      ]);
       document.getElementById('header_placeholder').innerHTML = header;
       document.getElementById('footer_placeholder').innerHTML = footer;
+      document.getElementById('donate_placeholder').innerHTML = donate;
       document.body.insertAdjacentHTML('beforeend', modal);
       updateAuthUI();
     }
@@ -105,10 +103,12 @@ async function loadProfile() {
     document.getElementById('profile_username').classList.add('russian');
   }
 
-  const { count } = await db.from('animations').select('*', { count: 'exact', head: true }).eq('user_id', userId);
-  document.getElementById('stat_toons').textContent = count || 0;
+  const [{ count }, { count: commentCount }] = await Promise.all([
+    db.from('animations').select('*', { count: 'exact', head: true }).eq('user_id', userId),
+    db.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', userId)
+  ]);
 
-  const { count: commentCount } = await db.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', userId);
+  document.getElementById('stat_toons').textContent = count || 0;
   document.getElementById('stat_comments').textContent = commentCount || 0;
 
   const { data: { user: currentUser } } = await db.auth.getUser();
@@ -140,7 +140,11 @@ async function loadProfile() {
   const totalPages = Math.ceil((count || 0) / PER_PAGE);
   const offset = (CURRENT_PAGE - 1) * PER_PAGE;
 
-  const { data: toons } = await db.from('animations').select('id, title, frames, created_at').eq('user_id', userId).order('created_at', { ascending: false }).range(offset, offset + PER_PAGE - 1);
+  const { data: toons } = await db.from('animations').select('id, title, frames, created_at')
+    .eq('user_id', userId)
+    .eq('draft', false)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + PER_PAGE - 1);
 
   const toonIds = (toons || []).map(t => t.id);
   let commentCounts = {};

@@ -1,7 +1,4 @@
-const SUPABASE_URL = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0';
-
-async function supabase(path, options = {}) {
+async function supabaseRequest(path, options = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
     ...options,
     headers: {
@@ -29,6 +26,10 @@ async function rpc(fn, params) {
   return res.json();
 }
 
+// Shared config — keep in sync with /js/config.js
+const SUPABASE_URL = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0';
+
 function formatDate(iso) {
   const d = new Date(iso);
   const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -40,11 +41,12 @@ function formatDate(iso) {
 }
 
 export default async function handler(req, res) {
-  const { id } = req.query;
+  const { id: rawId } = req.query;
+  const id = (rawId || '').toString().replace(/\/+$/, '');
 
   if (!id) return res.status(404).send('Not found');
 
-  const toons = await supabase(`/animations?id=eq.${id}&select=*`);
+  const toons = await supabaseRequest(`/animations?id=eq.${id}&select=*`);
   if (!toons || toons.length === 0) return res.status(404).send('Toon not found');
 
   const toon = toons[0];
@@ -69,7 +71,7 @@ export default async function handler(req, res) {
 
   let continuedFromHtml = '';
   if (toon.continued_from) {
-    const origToons = await supabase(`/animations?id=eq.${toon.continued_from}&select=id,title,user_id`);
+    const origToons = await supabaseRequest(`/animations?id=eq.${toon.continued_from}&select=id,title,user_id`);
     if (origToons && origToons.length > 0) {
       const orig = origToons[0];
       let origAuthor = 'unknown';
@@ -119,22 +121,20 @@ export default async function handler(req, res) {
   <meta property="og:image" content="${previewUrl}"/>
   <meta property="og:url" content="https://toonator.site/toon/${id}"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const SUPABASE_URL = '${SUPABASE_URL}';
-    const SUPABASE_KEY = '${SUPABASE_ANON_KEY}';
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  </script>
+  <script src="/js/config.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/toon-player.js"></script>
   <script>
     async function loadIncludes() {
-      const header = await fetch('/includes/header.html').then(r => r.text());
-      const footer = await fetch('/includes/footer.html').then(r => r.text());
-      const donate = await fetch('/includes/donate.html').then(r => r.text());
-      const modal  = await fetch('/includes/auth-modal.html').then(r => r.text());
-      document.getElementById('donate_placeholder').innerHTML = donate;
+      const [header, footer, donate, modal] = await Promise.all([
+        fetch('/includes/header.html').then(r => r.text()),
+        fetch('/includes/footer.html').then(r => r.text()),
+        fetch('/includes/donate.html').then(r => r.text()),
+        fetch('/includes/auth-modal.html').then(r => r.text())
+      ]);
       document.getElementById('header_placeholder').innerHTML = header;
       document.getElementById('footer_placeholder').innerHTML = footer;
+      document.getElementById('donate_placeholder').innerHTML = donate;
       document.body.insertAdjacentHTML('beforeend', modal);
       updateAuthUI();
     }
@@ -249,7 +249,7 @@ async function loadComments() {
     try {
       const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_user_by_username', {
         method: 'POST',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({ p_username: uname })
       });
       const userData = await res.json();
@@ -340,7 +340,7 @@ async function loadAuthorAvatar() {
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_user_by_username', {
       method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ p_username: username })
     });
     const userData = await res.json();
