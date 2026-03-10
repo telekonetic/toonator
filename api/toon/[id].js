@@ -1,45 +1,140 @@
-export default async function handler(req, res) {
-  const { username, page: pageParam } = req.query;
-  const decodedUsername = decodeURIComponent(username);
-  const page = parseInt(pageParam || '1');
-
-  const html = getProfileHTML(decodedUsername, page);
-  res.setHeader('Content-Type', 'text/html;charset=UTF-8');
-  res.send(html);
+async function supabaseRequest(path, options = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) return null;
+  return res.json();
 }
 
-function getProfileHTML(username, page) {
-  return `<!DOCTYPE html>
-<html lang="en">
+async function rpc(fn, params) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(params)
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+// Shared config — keep in sync with /js/config.js
+const SUPABASE_URL = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0';
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${mm}/${dd}/${yyyy} ${hh}:${min}`;
+}
+
+export default async function handler(req, res) {
+  const { id: rawId } = req.query;
+  const id = (rawId || '').toString().replace(/\/+$/, '');
+
+  if (!id) return res.status(404).send('Not found');
+
+  const toons = await supabaseRequest(`/animations?id=eq.${id}&select=*`);
+  if (!toons || toons.length === 0) return res.status(404).send('Toon not found');
+
+  const toon = toons[0];
+
+  let authorUsername = 'unknown';
+  let authorAvatar = '/img/avatar100.gif';
+  let authorRussian = false;
+
+  if (toon.user_id) {
+    const userData = await rpc('get_user_by_id', { p_user_id: toon.user_id });
+    if (userData && userData.length > 0) {
+      authorUsername = userData[0].username || 'unknown';
+      authorRussian = userData[0].russian || false;
+      const avatarToonId = userData[0].avatar_toon_id || userData[0].avatar_toon || null;
+      if (avatarToonId) {
+        authorAvatar = `${SUPABASE_URL}/storage/v1/object/public/previews/${avatarToonId}_100.gif`;
+      }
+    }
+  }
+
+  const authorRussianClass = authorRussian ? ' russian' : '';
+
+  let continuedFromHtml = '';
+  if (toon.continued_from) {
+    const origToons = await supabaseRequest(`/animations?id=eq.${toon.continued_from}&select=id,title,user_id`);
+    if (origToons && origToons.length > 0) {
+      const orig = origToons[0];
+      let origAuthor = 'unknown';
+      let origAuthorRussian = false;
+      if (orig.user_id) {
+        const origUser = await rpc('get_user_by_id', { p_user_id: orig.user_id });
+        if (origUser && origUser.length > 0) {
+          origAuthor = origUser[0].username || 'unknown';
+          origAuthorRussian = origUser[0].russian || false;
+        }
+      }
+      const origAuthorRussianClass = origAuthorRussian ? ' russian' : '';
+      const origTitle = orig.title || 'Untitled';
+      continuedFromHtml = `<div style="font-size:9pt; margin-top:5px;">
+        Original: <a href="/toon/${orig.id}" class="noh" title="${origTitle} (${origAuthor})">
+          &#x25ce; ${origTitle}
+        </a> by <a href="/user/${origAuthor}" class="username foreign${origAuthorRussianClass}">${origAuthor}</a>
+      </div>`;
+    }
+  }
+
+  const frames = Array.isArray(toon.frames) ? toon.frames : (toon.frames ? Object.values(toon.frames) : []);
+  const toonSettings = toon.settings || {};
+  const title = toon.title || 'Untitled';
+  const description = toon.description || '';
+  const keywords = toon.keywords || '';
+  const createdAt = formatDate(toon.created_at);
+  const previewUrl = `${SUPABASE_URL}/storage/v1/object/public/previews/${id}_100.gif`;
+
+  const tagsHtml = keywords
+    ? keywords.split(',').map(k => k.trim()).filter(Boolean).map(k =>
+        `<a href="/search/${encodeURIComponent(k)}" class="tag">${k}</a>`
+      ).join(' ')
+    : '';
+
+  const html = `<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>${username} - Toonator. Make animation online.</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>${title} - Toonator.com - Draw animation online!</title>
   <link rel="shortcut icon" href="/img/favicon-eyes.png"/>
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/css/font.css">
-  <link rel="stylesheet" href="/css/images.css">
+  <link href="/css/font.css" type="text/css" rel="stylesheet"/>
+  <link href="/css/images_ru.css" type="text/css" rel="stylesheet"/>
+  <link href="/style.css" type="text/css" rel="stylesheet"/>
+  <meta property="og:title" content="${title} - Toonator. Draw animation yourself!"/>
+  <meta property="og:description" content="${description || title}"/>
+  <meta property="og:image" content="${previewUrl}"/>
+  <meta property="og:url" content="https://toonator.site/toon/${id}"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const { createClient } = supabase;
-    const db = createClient(
-      'https://ytyhhmwnnlkhhpvsurlm.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0'
-    );
-    const PROFILE_USERNAME = ${JSON.stringify(username)};
-    const CURRENT_PAGE = ${page};
-    const PER_PAGE = 12;
-  </script>
+  <script src="/js/config.js"></script>
   <script src="/js/auth.js"></script>
-  <script src="/js/russian-users.js"></script>
+  <script src="/js/toon-player.js"></script>
   <script>
     async function loadIncludes() {
-      const header = await fetch('/includes/header.html').then(r => r.text());
-      const footer = await fetch('/includes/footer.html').then(r => r.text());
-      const donate = await fetch('/includes/donate.html').then(r => r.text());
-      const modal  = await fetch('/includes/auth-modal.html').then(r => r.text());
-      document.getElementById('donate_placeholder').innerHTML = donate;
+      const [header, footer, donate, modal] = await Promise.all([
+        fetch('/includes/header.html').then(r => r.text()),
+        fetch('/includes/footer.html').then(r => r.text()),
+        fetch('/includes/donate.html').then(r => r.text()),
+        fetch('/includes/auth-modal.html').then(r => r.text())
+      ]);
       document.getElementById('header_placeholder').innerHTML = header;
       document.getElementById('footer_placeholder').innerHTML = footer;
+      document.getElementById('donate_placeholder').innerHTML = donate;
       document.body.insertAdjacentHTML('beforeend', modal);
       updateAuthUI();
     }
@@ -50,37 +145,73 @@ function getProfileHTML(username, page) {
 <div id="header_placeholder"></div>
 <div id="content_wrap">
   <div id="content">
-    <div class="userprofile">
-      <div class="content_right">
-        <div class="center">
-          <h3 id="profile_username_wrap">
-            <a href="/user/${username}" class="username foreign" id="profile_username">${username}</a>
-          </h3>
-          <div class="center">
-            <img id="profile_avatar" src="/img/avatar100.gif" class="p100"/>
+    <div id="toon_page">
+      <div class="toon_panel">
+        <h2><span id="toon_title">${title}</span></h2>
+        <div class="player" id="player_container"></div>
+        <div class="info">
+          <div class="author">
+            <img class="avatar" id="author_avatar" src="${authorAvatar}" onerror="this.src='/img/avatar100.gif'"/>
+            <div class="author_name">
+              <a href="/user/${authorUsername}" class="username foreign${authorRussianClass}">${authorUsername}</a>
+            </div>
+            <div class="date">${createdAt}</div>
+            ${continuedFromHtml}
+          </div>
+          <div class="prizes"></div>
+          <div class="buttons">
+            <div class="toonmedals"></div>
+            <div class="like hover">
+              <a id="like_link" href="#" onclick="handleLike(); return false;" class="hover">
+                <img src="/img/1.gif" class="img_like"/><span class="black" id="like_value">0</span> Like
+              </a>
+            </div>
+            <div class="favorites">
+              <a href="#" class="hover" id="favlink" onclick="handleFavorite(); return false;">
+                <img src="/img/1.gif" class="img_favorites"/>Favorites
+              </a>
+            </div>
+            <div class="draw">
+              <a href="/draw/?continue=${id}" class="hover">
+                <img src="/img/1.gif" class="img_pencil"/>Continue
+              </a>
+            </div>
+          </div>
+          <div class="line_5"><img src="/img/1.gif"/></div>
+          <div class="description" id="description_text_div">
+            <span id="description_text">${description}</span>
+          </div>
+          ${tagsHtml ? `<div class="tags" style="margin:5px 0;">${tagsHtml}</div>` : ''}
+          <div class="share">
+            <ul class="share">
+              <li>Share:</li>
+              <li><a rel="nofollow" title="Twitter" href="https://twitter.com/intent/tweet?url=https://toonator.site/toon/${id}&text=${encodeURIComponent(title)}" target="_blank"><div class="shr_tw"></div></a></li>
+              <li><a rel="nofollow" title="Reddit" href="https://reddit.com/submit?url=https://toonator.site/toon/${id}&title=${encodeURIComponent(title)}" target="_blank"><div class="shr_reddit"></div></a></li>
+            </ul>
+          </div>
+          <div class="tcontinues"></div>
+        </div>
+        <div class="left_panel">
+          <div class="toon_comments" id="comments">
+            <span class="header">
+              <span style="float:left">Comments</span>
+              <a href="#" class="new" id="addCommentBtn" onclick="showCommentForm(); return false;">Add comment</a>
+              <div style="clear:both"></div>
+            </span>
+            <div id="comments_form" style="display:none;">
+              <div class="form2">
+                <textarea id="comment_text" rows="3" placeholder="Write a comment..." style="border:1px solid #cccccc;margin:10px;width:580px;font-family:Arial;font-size:10pt;"></textarea>
+              </div>
+              <div class="form2" style="text-align:right;margin-right:10px;margin-bottom:10px;">
+                <button onclick="postComment(); return false;">Post</button>
+                <button onclick="document.getElementById('comments_form').style.display='none'; return false;">Cancel</button>
+              </div>
+            </div>
+            <div id="comments_list">
+              <p style="color:#888888;font-size:10pt;padding:10px;">No comments yet.</p>
+            </div>
           </div>
         </div>
-        Total toons: <span id="stat_toons">...</span><br/>
-        <span id="stat_drafts_row" style="display:none">Total drafts: <span id="stat_drafts">0</span><br/></span>
-        Total comments: <span id="stat_comments">0</span><br/>
-        <br/>
-        Rank: <b id="stat_rank">Passer</b><br/>
-        <br/>
-        <a id="private_messages_link" href="#" style="display:none; font-size:10pt;">Private messages</a>
-      </div>
-      <div class="content_left">
-        <h1><span style="font-weight:normal">
-          <a class="nmenu selected" href="/user/${username}/">Album</a> |
-          <a class="nmenu" href="/user/${username}/favorites/">Favorites</a> |
-          <a class="nmenu" href="/user/${username}/comments/">Comments</a>
-        </span></h1>
-        <div id="paginator_top"></div>
-        <div class="toons_container">
-          <div class="toons_list" id="toons_list">
-            <p style="color:#888888; font-size:10pt; padding:10px 0;">Loading...</p>
-          </div>
-        </div>
-        <div id="paginator_bottom"></div>
       </div>
     </div>
     <div style="clear:both"></div>
@@ -90,139 +221,146 @@ function getProfileHTML(username, page) {
 </div>
 
 <script>
-async function loadProfile() {
-  const { data: profile, error } = await db.rpc('get_user_by_username', { p_username: PROFILE_USERNAME });
+const TOON_FRAMES = ${JSON.stringify(frames)};
+const TOON_ID = '${id}';
+const TOON_SETTINGS = ${JSON.stringify(toonSettings)};
 
-  if (error || !profile || profile.length === 0) {
-    document.getElementById('toons_list').innerHTML = '<p style="color:#888888;font-size:10pt;padding:10px 0;">User not found.</p>';
-    document.getElementById('stat_toons').textContent = '0';
-    return;
-  }
+initToonPlayer('player_container', TOON_FRAMES, TOON_SETTINGS);
 
-  const userId = profile[0].id;
-
-  // Count only published toons (not drafts)
-  const { count } = await db.from('animations')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('is_draft', false);
-  const totalToons = count || 0;
-  document.getElementById('stat_toons').textContent = totalToons;
-
-  const { count: commentCount } = await db.from('comments')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
-  document.getElementById('stat_comments').textContent = commentCount || 0;
-
-  const { data: { user: currentUser } } = await db.auth.getUser();
-  const isOwnProfile = currentUser && (currentUser.user_metadata?.username === PROFILE_USERNAME);
-
-  const avatarEl = document.getElementById('profile_avatar');
-  const avatarToon = isOwnProfile
-    ? (currentUser?.user_metadata?.avatar_toon || profile[0].avatar_toon)
-    : profile[0].avatar_toon;
-
-  if (avatarToon) {
-    avatarEl.src = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co/storage/v1/object/public/previews/' + avatarToon + '_100.gif';
-  }
-  avatarEl.onerror = () => { avatarEl.src = '/img/avatar100.gif'; };
-
-  if (isOwnProfile) {
-    avatarEl.insertAdjacentHTML('afterend', '<br/><a href="#" onclick="changeAvatar(); return false;" style="font-size:9pt;">[Change avatar]</a>');
-
-    // Count drafts separately for own profile
-    const { count: draftCount } = await db.from('animations')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('is_draft', true);
-    document.getElementById('stat_drafts_row').style.display = '';
-    document.getElementById('stat_drafts').textContent = draftCount || 0;
-  }
-
-  if (currentUser && !isOwnProfile) {
-    const pmLink = document.getElementById('private_messages_link');
-    pmLink.href = '/messages/' + PROFILE_USERNAME + '/';
-    pmLink.style.display = '';
-  }
-
-  const totalPages = Math.ceil(totalToons / PER_PAGE);
-  const offset = (CURRENT_PAGE - 1) * PER_PAGE;
-
-  // Fetch only published toons
-  const { data: toons } = await db.from('animations')
-    .select('id, title, frames, created_at')
-    .eq('user_id', userId)
-    .eq('is_draft', false)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + PER_PAGE - 1);
-
-  const toonIds = (toons || []).map(t => t.id);
-  let commentCounts = {};
-  if (toonIds.length > 0) {
-    const { data: counts } = await db.from('comments').select('animation_id').in('animation_id', toonIds);
-    (counts || []).forEach(c => { commentCounts[c.animation_id] = (commentCounts[c.animation_id] || 0) + 1; });
-  }
-
-  renderToons(toons || [], commentCounts);
-  renderPaginator(totalPages, 'paginator_top');
-  renderPaginator(totalPages, 'paginator_bottom');
+function showCommentForm() {
+  db.auth.getUser().then(({ data: { user } }) => {
+    if (!user) { showAuth('login'); return; }
+    document.getElementById('comments_form').style.display = 'block';
+    document.getElementById('comment_text').focus();
+  });
 }
 
-function renderToons(toons, commentCounts) {
-  const list = document.getElementById('toons_list');
-  if (toons.length === 0) {
-    list.innerHTML = '<p style="color:#888888;font-size:10pt;padding:10px 0;">No toons yet.</p>';
+async function loadComments() {
+  const { data, error } = await db.from('comments').select('*').eq('animation_id', TOON_ID).order('created_at', { ascending: false }).limit(20);
+  const list = document.getElementById('comments_list');
+  if (!data || data.length === 0) {
+    list.innerHTML = '<p style="color:#888888;font-size:10pt;padding:10px;">No comments yet.</p>';
     return;
   }
-  list.innerHTML = toons.map(toon => {
-    const frames = Array.isArray(toon.frames) ? toon.frames : (toon.frames ? Object.values(toon.frames) : []);
-    const frameCount = frames.length || 1;
-    const title = toon.title || 'Untitled';
-    const frameLabel = frameCount === 1 ? '1 frame' : '<b>' + frameCount + '</b> frames';
-    const cc = commentCounts[toon.id] || 0;
-    const commentLabel = cc === 0 ? '<span class="grayb">No comments</span>' : '<b>' + cc + '</b> comment' + (cc === 1 ? '' : 's');
-    return '<div class="toon_preview toon_preview_' + toon.id + '">' +
-      '<div class="toon_image"><a href="/toon/' + toon.id + '" title="' + title + '">' +
-        '<img src="https://ytyhhmwnnlkhhpvsurlm.supabase.co/storage/v1/object/public/previews/' + toon.id + '_100.gif" width="200" height="100" alt="' + title + '"/>' +
-      '</a></div>' +
-      '<div class="toon_name"><a class="link" href="/toon/' + toon.id + '">' + title + '</a></div>' +
-      '<div class="toon_tagline">' + frameLabel + '</div>' +
-      '<div class="toon_tagline">' + commentLabel + '</div>' +
-    '</div>';
+
+  const usernames = [...new Set(data.map(c => c.author_username).filter(Boolean))];
+  const userDataMap = {};
+  await Promise.all(usernames.map(async (uname) => {
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_user_by_username', {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_username: uname })
+      });
+      const userData = await res.json();
+      if (userData && userData.length > 0) {
+        const avatarToonId = userData[0].avatar_toon_id || userData[0].avatar_toon || null;
+        userDataMap[uname] = {
+          avatar: avatarToonId ? SUPABASE_URL + '/storage/v1/object/public/previews/' + avatarToonId + '_100.gif' : '/img/avatar100.gif',
+          russian: userData[0].russian || false
+        };
+      } else {
+        userDataMap[uname] = { avatar: '/img/avatar100.gif', russian: false };
+      }
+    } catch (e) {
+      userDataMap[uname] = { avatar: '/img/avatar100.gif', russian: false };
+    }
+  }));
+
+  list.innerHTML = data.map(c => {
+    const username = c.author_username || 'anonymous';
+    const ud = userDataMap[username] || { avatar: '/img/avatar100.gif', russian: false };
+    const russianClass = ud.russian ? ' russian' : '';
+    const date = new Date(c.created_at);
+    const dateStr = date.toLocaleDateString('en-US') + ' ' + date.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+    return \`<div class="comment">
+      <div class="avatar">
+        <a href="/user/\${username}"><img class="avatar" src="\${ud.avatar}" onerror="this.src='/img/avatar100.gif'"/></a>
+      </div>
+      <div class="head">
+        <a href="/user/\${username}" class="username foreign\${russianClass}">\${username}</a>
+        <span class="date"><b>\${dateStr}</b></span>
+      </div>
+      <div class="text">\${c.text}</div>
+    </div>\`;
   }).join('');
 }
 
-function renderPaginator(totalPages, containerId) {
-  if (totalPages <= 1) return;
-  const container = document.getElementById(containerId);
-  const maxShow = 5;
-  const shown = Math.min(totalPages, maxShow);
-  let items = '';
-  for (let i = 1; i <= shown; i++) {
-    if (i === CURRENT_PAGE) {
-      items += '<li class="current"><a href="/user/' + PROFILE_USERNAME + '/' + i + '/">' + i + '</a></li>';
-    } else {
-      items += '<li><a href="/user/' + PROFILE_USERNAME + '/' + i + '/">' + i + '</a></li>';
-    }
-  }
-  if (totalPages > maxShow) items += '<li class="dots">...</li>';
-  container.innerHTML = '<div class="paginator"><ul class="paginator">' + items + '</ul><div style="clear:both"></div></div>';
-}
-
-async function changeAvatar() {
-  const toonId = prompt('Enter toon ID to use as avatar:');
-  if (!toonId) return;
-  const { error: authError } = await db.auth.updateUser({ data: { avatar_toon: toonId } });
-  const { error: profileError } = await db.from('profiles').update({ avatar_toon: toonId }).eq('username', PROFILE_USERNAME);
-  if (!authError && !profileError) {
-    document.getElementById('profile_avatar').src = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co/storage/v1/object/public/previews/' + toonId + '_100.gif';
+async function postComment() {
+  const text = document.getElementById('comment_text').value.trim();
+  if (!text) return;
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) { showAuth('login'); return; }
+  const username = user.user_metadata?.username || user.email;
+  const { error } = await db.from('comments').insert({ animation_id: TOON_ID, user_id: user.id, author_username: username, text: text });
+  if (!error) {
+    document.getElementById('comment_text').value = '';
+    document.getElementById('comments_form').style.display = 'none';
+    loadComments();
   } else {
-    alert('Error saving avatar: ' + (authError?.message || profileError?.message));
+    alert('Error posting comment: ' + error.message);
   }
 }
 
-loadProfile();
+async function loadLikes() {
+  const { data: toon } = await db.from('animations').select('likes').eq('id', TOON_ID).single();
+  if (toon) document.getElementById('like_value').textContent = toon.likes || 0;
+  const { data: { user } } = await db.auth.getUser();
+  if (user) {
+    const { data: existing } = await db.from('likes').select('id').eq('animation_id', TOON_ID).eq('user_id', user.id).maybeSingle();
+    if (existing) document.getElementById('like_link').classList.add('active');
+  }
+}
+
+async function handleLike() {
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) { showAuth('login'); return; }
+  const link = document.getElementById('like_link');
+  const valueEl = document.getElementById('like_value');
+  const alreadyLiked = link.classList.contains('active');
+  if (alreadyLiked) {
+    const { error } = await db.from('likes').delete().eq('animation_id', TOON_ID).eq('user_id', user.id);
+    if (!error) { link.classList.remove('active'); valueEl.textContent = Math.max(0, parseInt(valueEl.textContent) - 1); }
+  } else {
+    const { error } = await db.from('likes').upsert({ animation_id: TOON_ID, user_id: user.id }, { onConflict: 'animation_id,user_id', ignoreDuplicates: true });
+    if (!error) { link.classList.add('active'); valueEl.textContent = parseInt(valueEl.textContent) + 1; }
+  }
+}
+
+function handleFavorite() {
+  db.auth.getUser().then(({ data: { user } }) => {
+    if (!user) { showAuth('login'); return; }
+    alert('Favorites feature coming soon!');
+  });
+}
+
+async function loadAuthorAvatar() {
+  const username = ${JSON.stringify(authorUsername)};
+  if (!username || username === 'unknown') return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_user_by_username', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_username: username })
+    });
+    const userData = await res.json();
+    if (userData && userData.length > 0) {
+      const avatarToonId = userData[0].avatar_toon_id || userData[0].avatar_toon || null;
+      if (avatarToonId) {
+        const avatarEl = document.getElementById('author_avatar');
+        if (avatarEl) avatarEl.src = SUPABASE_URL + '/storage/v1/object/public/previews/' + avatarToonId + '_100.gif';
+      }
+    }
+  } catch (e) {}
+}
+
+loadAuthorAvatar();
+loadLikes();
+loadComments();
 </script>
 </body>
 </html>`;
+
+  res.setHeader('Content-Type', 'text/html;charset=UTF-8');
+  res.send(html);
 }
