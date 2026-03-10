@@ -1204,31 +1204,6 @@ loadContinue();
   // ── styles — match save dialog's #555 dark grey palette ─
   const style = document.createElement('style');
   style.textContent = `
-    #btnSettings {
-      position: absolute;
-      width: 24px;
-      height: 24px;
-      left: 570px;
-      top: 62px;
-      cursor: pointer;
-      pointer-events: auto;
-      background: url('./graphics/settings.svg') no-repeat center center;
-      background-size: 100% 100%;
-    }
-    /* fallback glyph if svg missing */
-    #btnSettings:not([style*="background-image"])::before,
-    #btnSettings::before {
-      content: '⚙';
-      font-size: 15px;
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      color: #444;
-      line-height: 1;
-      pointer-events: none;
-    }
-    #btnSettings:hover::before { color: #000; }
-
     #settingsPanel {
       display: none;
       position: fixed;
