@@ -16,6 +16,7 @@
     );
   </script>
   <script src="/js/auth.js"></script>
+  <script src="/js/russian-users.js"></script>
   <meta name="title" content="Toonator">
   <meta name="description" content="Toonator is online cartoon editing tool.">
   <meta property="og:type" content="website">
@@ -70,23 +71,20 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0';
 
   async function loadIncludes() {
-      const header = await fetch('/includes/header.html').then(r => r.text());
-      const footer = await fetch('/includes/footer.html').then(r => r.text());
-      const donate = await fetch('/includes/donate.html').then(r => r.text());
-      const modal  = await fetch('/includes/auth-modal.html').then(r => r.text());
-      document.getElementById('donate_placeholder').innerHTML = donate;
-      document.getElementById('header_placeholder').innerHTML = header;
-      document.getElementById('footer_placeholder').innerHTML = footer;
-      document.body.insertAdjacentHTML('beforeend', modal);
-      updateAuthUI();
-    }
+    const header = await fetch('/includes/header.html').then(r => r.text());
+    const footer = await fetch('/includes/footer.html').then(r => r.text());
+    const donate = await fetch('/includes/donate.html').then(r => r.text());
+    const modal  = await fetch('/includes/auth-modal.html').then(r => r.text());
+    document.getElementById('donate_placeholder').innerHTML = donate;
+    document.getElementById('header_placeholder').innerHTML = header;
+    document.getElementById('footer_placeholder').innerHTML = footer;
+    document.body.insertAdjacentHTML('beforeend', modal);
+    updateAuthUI();
+  }
 
   async function apiFetch(path) {
     const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      }
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
     });
     if (!res.ok) return null;
     return res.json();
@@ -95,11 +93,7 @@
   async function rpc(fn, params) {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
       method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(params)
     });
     if (!res.ok) return null;
@@ -107,10 +101,7 @@
   }
 
   function escapeHTML(str) {
-    return String(str || '')
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
   }
 
   function previewUrl(id, size = 100) {
@@ -118,14 +109,11 @@
   }
 
   function toonCardHTML(toon, username) {
-    const frames = Array.isArray(toon.frames)
-      ? toon.frames
-      : (toon.frames ? Object.values(toon.frames) : []);
+    const frames = Array.isArray(toon.frames) ? toon.frames : (toon.frames ? Object.values(toon.frames) : []);
     const frameCount = frames.length;
     const frameStr = frameCount >= 50 ? `<b>${frameCount}</b> frames` : `${frameCount} frames`;
     const commentStr = `<span class="grayb">No comments</span>`;
     const title = escapeHTML(toon.title || 'Untitled');
-
     return `
       <div class="toon_preview owned">
         <div class="toon_image">
@@ -133,9 +121,7 @@
             <img alt="${title}" title="${title}" src="${previewUrl(toon.id)}">
           </a>
         </div>
-        <div class="toon_name">
-          <a class="link" href="/toon/${toon.id}">${title}</a>
-        </div>
+        <div class="toon_name"><a class="link" href="/toon/${toon.id}">${title}</a></div>
         <div class="toon_tagline">
           <a href="/user/${escapeHTML(username)}" class="username foreign">${escapeHTML(username)}</a>,
           ${frameStr}
@@ -156,27 +142,17 @@
   }
 
   async function loadPopular() {
-    const toons = await apiFetch(
-      '/animations?select=id,title,user_id,frames,likes&order=likes.desc.nullslast&limit=6'
-    );
+    const toons = await apiFetch('/animations?select=id,title,user_id,frames,likes&order=likes.desc.nullslast&limit=6');
     const list = document.getElementById('popular-list');
-    if (!toons || toons.length === 0) {
-      list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>';
-      return;
-    }
+    if (!toons || toons.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>'; return; }
     const userMap = await resolveUsernames(toons);
     list.innerHTML = toons.map(t => toonCardHTML(t, userMap[t.user_id] || 'unknown')).join('');
   }
 
   async function loadNewest() {
-    const toons = await apiFetch(
-      '/animations?select=id,title,user_id,frames,likes&order=created_at.desc&limit=6'
-    );
+    const toons = await apiFetch('/animations?select=id,title,user_id,frames,likes&order=created_at.desc&limit=6');
     const list = document.getElementById('newest-list');
-    if (!toons || toons.length === 0) {
-      list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>';
-      return;
-    }
+    if (!toons || toons.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>'; return; }
     const userMap = await resolveUsernames(toons);
     list.innerHTML = toons.map(t => toonCardHTML(t, userMap[t.user_id] || 'unknown')).join('');
   }
@@ -185,13 +161,10 @@
     // TODO: implement Good Place feature
   }
 
-
-  // kick everything off
   loadIncludes();
   loadPopular();
   loadNewest();
   loadGoodPlace();
 </script>
-
 </body>
 </html>
