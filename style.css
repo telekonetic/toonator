@@ -368,6 +368,14 @@ ul.topmenu li a {
     margin: 0 5px;
     padding: 5px;
 }
+
+.line_5 {
+    background: url(/img/lines.png) 0px -40px;
+    height: 10px;
+    width: 310px;
+    margin: 5px auto;
+}
+
 .top a.selected {
     background: #dddddd;
 }
