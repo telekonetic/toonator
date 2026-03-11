@@ -1,170 +1,235 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Toonator.com - Make animation online!</title>
-  <link rel="shortcut icon" href="/img/favicon-eyes.png"/>
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/css/font.css">
-  <link rel="stylesheet" href="/css/images.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const { createClient } = supabase;
-    const db = createClient(
-      'https://ytyhhmwnnlkhhpvsurlm.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0'
-    );
-  </script>
-  <script src="/js/auth.js"></script>
-  <script src="/js/color-username.js"></script>
-  <meta name="title" content="Toonator">
-  <meta name="description" content="Toonator is online cartoon editing tool.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://toonator.pages.dev">
-  <meta property="og:title" content="Toonator">
-  <meta property="og:description" content="Toonator is online cartoon editing tool.">
-  <meta property="og:image" content="/img/toonator320.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Toonator">
-  <meta name="twitter:description" content="Toonator is online cartoon editing tool.">
-  <meta name="twitter:image" content="/img/toonator40.png">
-</head>
-<body>
-<div id="donate_placeholder"></div>
-<div id="header_placeholder"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Toonator.com - Make animation online!</title>
+    <link rel="shortcut icon" href="/img/favicon-eyes.png" />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/css/font.css" />
+    <link rel="stylesheet" href="/css/images.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      const { createClient } = supabase;
+      const db = createClient(
+        "https://ytyhhmwnnlkhhpvsurlm.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0",
+      );
+    </script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/color-username.js"></script>
+    <meta name="title" content="Toonator" />
+    <meta
+      name="description"
+      content="Toonator is online cartoon editing tool."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://toonator.pages.dev" />
+    <meta property="og:title" content="Toonator" />
+    <meta
+      property="og:description"
+      content="Toonator is online cartoon editing tool."
+    />
+    <meta property="og:image" content="/img/toonator320.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Toonator" />
+    <meta
+      name="twitter:description"
+      content="Toonator is online cartoon editing tool."
+    />
+    <meta name="twitter:image" content="/img/toonator40.png" />
+  </head>
+  <body>
+    <div id="donate_placeholder"></div>
+    <div id="header_placeholder"></div>
 
-<div id="content_wrap">
-  <div id="content">
+    <div id="content_wrap">
+      <div id="content">
+        <div class="content_left">
+          <b>Most popular toons</b>
+          <div class="toons_container">
+            <div class="toons_list" id="popular-list">
+              <div style="text-align: center; color: #888; padding: 20px">
+                Loading...
+              </div>
+            </div>
+          </div>
 
-    <div class="content_left">
-      <b>Most popular toons</b>
-      <div class="toons_container">
-        <div class="toons_list" id="popular-list">
-          <div style="text-align:center;color:#888;padding:20px;">Loading...</div>
+          <b>Newest toons</b>
+          <div class="toons_container">
+            <div class="toons_list" id="newest-list">
+              <div style="text-align: center; color: #888; padding: 20px">
+                Loading...
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <b>Newest toons</b>
-      <div class="toons_container">
-        <div class="toons_list" id="newest-list">
-          <div style="text-align:center;color:#888;padding:20px;">Loading...</div>
+        <div class="content_right">
+          <br />
+          <img src="/img/toonator320.png" />
+          <div>
+            Toonator is online cartoon editing tool.<br />With Toonator you can
+            easily make funny animations.
+          </div>
+
+          <h1><a href="/goodplace/">Good Place</a></h1>
+          <div id="good-place-toon"></div>
         </div>
+
+        <div class="clear"></div>
       </div>
+      <div id="footer_placeholder"></div>
     </div>
 
-    <div class="content_right">
-      <br/>
-      <img src="/img/toonator320.png"/>
-      <div>Toonator is online cartoon editing tool.<br/>With Toonator you can easily make funny animations.</div>
+    <script>
+      const SUPABASE_URL = "https://ytyhhmwnnlkhhpvsurlm.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0";
 
-      <h1><a href="/goodplace/">Good Place</a></h1>
-      <div id="good-place-toon"></div>
-    </div>
+      async function loadIncludes() {
+        const header = await fetch("/includes/header.html").then((r) =>
+          r.text(),
+        );
+        const footer = await fetch("/includes/footer.html").then((r) =>
+          r.text(),
+        );
+        const donate = await fetch("/includes/donate.html").then((r) =>
+          r.text(),
+        );
+        const modal = await fetch("/includes/auth-modal.html").then((r) =>
+          r.text(),
+        );
+        document.getElementById("donate_placeholder").innerHTML = donate;
+        document.getElementById("header_placeholder").innerHTML = header;
+        document.getElementById("footer_placeholder").innerHTML = footer;
+        document.body.insertAdjacentHTML("beforeend", modal);
+        updateAuthUI();
+      }
 
-    <div class="clear"></div>
-  </div>
-  <div id="footer_placeholder"></div>
-</div>
+      async function apiFetch(path) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        });
+        if (!res.ok) return null;
+        return res.json();
+      }
 
-<script>
-  const SUPABASE_URL = 'https://ytyhhmwnnlkhhpvsurlm.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0eWhobXdubmxraGhwdnN1cmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NzcwNTAsImV4cCI6MjA4ODU1MzA1MH0.XZVH3j6xftSRULfhdttdq6JGIUSgHHJt9i-vXnALjH0';
+      async function rpc(fn, params) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(params),
+        });
+        if (!res.ok) return null;
+        return res.json();
+      }
 
-  async function loadIncludes() {
-    const header = await fetch('/includes/header.html').then(r => r.text());
-    const footer = await fetch('/includes/footer.html').then(r => r.text());
-    const donate = await fetch('/includes/donate.html').then(r => r.text());
-    const modal  = await fetch('/includes/auth-modal.html').then(r => r.text());
-    document.getElementById('donate_placeholder').innerHTML = donate;
-    document.getElementById('header_placeholder').innerHTML = header;
-    document.getElementById('footer_placeholder').innerHTML = footer;
-    document.body.insertAdjacentHTML('beforeend', modal);
-    updateAuthUI();
-  }
+      function escapeHTML(str) {
+        return String(str || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
 
-  async function apiFetch(path) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
-      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-    });
-    if (!res.ok) return null;
-    return res.json();
-  }
+      function previewUrl(id, size = 100) {
+        return `${SUPABASE_URL}/storage/v1/object/public/previews/${id}_${size}.gif`;
+      }
 
-  async function rpc(fn, params) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(params)
-    });
-    if (!res.ok) return null;
-    return res.json();
-  }
-
-  function escapeHTML(str) {
-    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-  }
-
-  function previewUrl(id, size = 100) {
-    return `${SUPABASE_URL}/storage/v1/object/public/previews/${id}_${size}.gif`;
-  }
-
-  function toonCardHTML(toon, username) {
-    const frames = Array.isArray(toon.frames) ? toon.frames : (toon.frames ? Object.values(toon.frames) : []);
-    const frameCount = frames.length;
-    const frameStr = frameCount >= 50 ? `<b>${frameCount}</b> frames` : `${frameCount} frames`;
-    const commentStr = `<span class="grayb">No comments</span>`;
-    const title = escapeHTML(toon.title || 'Untitled');
-    return `
+      function toonCardHTML(toon, username) {
+        const frames = Array.isArray(toon.frames)
+          ? toon.frames
+          : toon.frames
+            ? Object.values(toon.frames)
+            : [];
+        const frameCount = frames.length;
+        const frameStr =
+          frameCount >= 50
+            ? `<b>${frameCount}</b> frames`
+            : `${frameCount} frames`;
+        const commentStr = `<span class="grayb">No comments</span>`;
+        const title = escapeHTML(toon.title || "Untitled");
+        const toonUrl = `/pages/toon.html?id=${toon.id}`;
+        const profileUrl = `/pages/profile.html?username=${encodeURIComponent(username)}`;
+        return `
       <div class="toon_preview owned">
         <div class="toon_image">
-          <a href="/toon/${toon.id}" title="${title}">
+          <a href="${toonUrl}" title="${title}">
             <img alt="${title}" title="${title}" src="${previewUrl(toon.id)}">
           </a>
         </div>
-        <div class="toon_name"><a class="link" href="/toon/${toon.id}">${title}</a></div>
+        <div class="toon_name"><a class="link" href="${toonUrl}">${title}</a></div>
         <div class="toon_tagline">
-          <a href="/user/${escapeHTML(username)}" class="username foreign">${escapeHTML(username)}</a>,
+          <a href="${profileUrl}" class="username foreign">${escapeHTML(username)}</a>,
           ${frameStr}
         </div>
         <div class="toon_tagline">${commentStr}</div>
       </div>`;
-  }
-
-  async function resolveUsernames(toons) {
-    const userMap = {};
-    await Promise.all(toons.map(async (toon) => {
-      if (toon.user_id && !userMap[toon.user_id]) {
-        const userData = await rpc('get_user_by_id', { p_user_id: toon.user_id });
-        userMap[toon.user_id] = userData?.[0]?.username || 'unknown';
       }
-    }));
-    return userMap;
-  }
 
-  async function loadPopular() {
-    const toons = await apiFetch('/animations?select=id,title,user_id,frames,likes&order=likes.desc.nullslast&limit=6');
-    const list = document.getElementById('popular-list');
-    if (!toons || toons.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>'; return; }
-    const userMap = await resolveUsernames(toons);
-    list.innerHTML = toons.map(t => toonCardHTML(t, userMap[t.user_id] || 'unknown')).join('');
-  }
+      async function resolveUsernames(toons) {
+        const userMap = {};
+        await Promise.all(
+          toons.map(async (toon) => {
+            if (toon.user_id && !userMap[toon.user_id]) {
+              const userData = await rpc("get_user_by_id", {
+                p_user_id: toon.user_id,
+              });
+              userMap[toon.user_id] = userData?.[0]?.username || "unknown";
+            }
+          }),
+        );
+        return userMap;
+      }
 
-  async function loadNewest() {
-    const toons = await apiFetch('/animations?select=id,title,user_id,frames,likes&order=created_at.desc&limit=6');
-    const list = document.getElementById('newest-list');
-    if (!toons || toons.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>'; return; }
-    const userMap = await resolveUsernames(toons);
-    list.innerHTML = toons.map(t => toonCardHTML(t, userMap[t.user_id] || 'unknown')).join('');
-  }
+      async function loadPopular() {
+        const toons = await apiFetch(
+          "/animations?select=id,title,user_id,frames,likes&order=likes.desc.nullslast&limit=6",
+        );
+        const list = document.getElementById("popular-list");
+        if (!toons || toons.length === 0) {
+          list.innerHTML =
+            '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>';
+          return;
+        }
+        const userMap = await resolveUsernames(toons);
+        list.innerHTML = toons
+          .map((t) => toonCardHTML(t, userMap[t.user_id] || "unknown"))
+          .join("");
+      }
 
-  async function loadGoodPlace() {
-    // TODO: implement Good Place feature
-  }
+      async function loadNewest() {
+        const toons = await apiFetch(
+          "/animations?select=id,title,user_id,frames,likes&order=created_at.desc&limit=6",
+        );
+        const list = document.getElementById("newest-list");
+        if (!toons || toons.length === 0) {
+          list.innerHTML =
+            '<div style="text-align:center;color:#888;padding:10px;">No toons yet.</div>';
+          return;
+        }
+        const userMap = await resolveUsernames(toons);
+        list.innerHTML = toons
+          .map((t) => toonCardHTML(t, userMap[t.user_id] || "unknown"))
+          .join("");
+      }
 
-  loadIncludes();
-  loadPopular();
-  loadNewest();
-  loadGoodPlace();
-</script>
-</body>
+      async function loadGoodPlace() {
+        // TODO: implement Good Place feature
+      }
+
+      loadIncludes();
+      loadPopular();
+      loadNewest();
+      loadGoodPlace();
+    </script>
+  </body>
 </html>

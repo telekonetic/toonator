@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title id="page_title">User Profile - Toonator</title>
+    <link rel="shortcut icon" href="/img/favicon-eyes.png" />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/css/font.css" />
+    <link rel="stylesheet" href="/css/images.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/config.js" type="module"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/color-username.js"></script>
+  </head>
+  <body>
+    <div id="header_placeholder"></div>
+    <div id="content_wrap">
+      <div id="content">
+        <div class="userprofile">
+          <div class="content_right">
+            <div class="center">
+              <h3 id="profile_username_wrap">
+                <a id="profile_username" class="username foreign"></a>
+              </h3>
+              <div class="center">
+                <img
+                  id="profile_avatar"
+                  src="/img/avatar100.gif"
+                  class="p100"
+                />
+              </div>
+            </div>
+            Total toons: <span id="stat_toons">...</span><br />
+            <span id="stat_drafts_row" style="display: none"
+              >Total drafts: <span id="stat_drafts">0</span><br
+            /></span>
+            Total comments: <span id="stat_comments">0</span><br />
+            <br />
+            Rank: <b id="stat_rank">Passer</b><br />
+            <br />
+            <a
+              id="private_messages_link"
+              href="#"
+              style="display: none; font-size: 10pt"
+              >Private messages</a
+            >
+          </div>
+          <div class="content_left">
+            <h1>
+              <span style="font-weight: normal">
+                <a class="nmenu selected" href="#">Album</a> |
+                <a class="nmenu" href="#">Favorites</a> |
+                <a class="nmenu" href="#">Comments</a>
+              </span>
+            </h1>
+            <div id="paginator_top"></div>
+            <div class="toons_container">
+              <div class="toons_list" id="toons_list">
+                <p style="color: #888888; font-size: 10pt; padding: 10px 0">
+                  Loading...
+                </p>
+              </div>
+            </div>
+            <div id="paginator_bottom"></div>
+          </div>
+        </div>
+        <div style="clear: both"></div>
+      </div>
+      <div id="donate_placeholder"></div>
+      <div id="footer_placeholder"></div>
+    </div>
+
+    <script type="module">
+      import { initProfile } from "/js/pages/profile-page.js";
+
+      const PROFILE_USERNAME =
+        new URLSearchParams(window.location.search).get("username") ||
+        decodeURIComponent(
+          window.location.pathname.split("/").filter(Boolean)[1],
+        );
+
+      initProfile(PROFILE_USERNAME);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title id="page_title">Toon - Toonator</title>
+    <link rel="shortcut icon" href="/img/favicon-eyes.png" />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/css/font.css" />
+    <link rel="stylesheet" href="/css/images.css" />
+    <meta id="og_title" property="og:title" content="" />
+    <meta id="og_description" property="og:description" content="" />
+    <meta id="og_image" property="og:image" content="" />
+    <meta id="og_url" property="og:url" content="" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/config.js" type="module"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/toon-player.js"></script>
+  </head>
+  <body>
+    <div id="header_placeholder"></div>
+    <div id="content_wrap">
+      <div id="content">
+        <div id="toon_page">
+          <div class="toon_panel">
+            <h2><span id="toon_title">Loading...</span></h2>
+            <div class="player" id="player_container"></div>
+            <div class="info">
+              <div class="author">
+                <img
+                  class="avatar"
+                  id="author_avatar"
+                  src="/img/avatar100.gif"
+                  onerror="this.src = '/img/avatar100.gif'"
+                />
+                <div class="author_name">
+                  <a id="author_link" href="#" class="username foreign"></a>
+                </div>
+                <div class="date" id="toon_date"></div>
+                <div id="continued_from"></div>
+              </div>
+              <div class="prizes"></div>
+              <div class="buttons">
+                <div class="toonmedals"></div>
+                <div class="like hover">
+                  <a
+                    id="like_link"
+                    href="#"
+                    onclick="
+                      handleLike();
+                      return false;
+                    "
+                    class="hover"
+                  >
+                    <img src="/img/1.gif" class="img_like" /><span
+                      class="black"
+                      id="like_value"
+                      >0</span
+                    >
+                    Like
+                  </a>
+                </div>
+                <div class="favorites">
+                  <a
+                    href="#"
+                    class="hover"
+                    id="favlink"
+                    onclick="
+                      handleFavorite();
+                      return false;
+                    "
+                  >
+                    <img src="/img/1.gif" class="img_favorites" />Favorites
+                  </a>
+                </div>
+                <div class="draw">
+                  <a id="continue_link" href="#" class="hover">
+                    <img src="/img/1.gif" class="img_pencil" />Continue
+                  </a>
+                </div>
+              </div>
+              <div class="line_5"><img src="/img/1.gif" /></div>
+              <div
+                class="description"
+                id="description_div"
+                style="display: none"
+              >
+                <span id="description_text"></span>
+              </div>
+              <div
+                class="tags"
+                id="tags_container"
+                style="display: none; margin: 5px 0"
+              ></div>
+              <div class="share">
+                <ul class="share">
+                  <li>Share:</li>
+                  <li>
+                    <a
+                      rel="nofollow"
+                      title="Twitter"
+                      id="share_twitter"
+                      href="#"
+                      target="_blank"
+                      ><div class="shr_tw"></div
+                    ></a>
+                  </li>
+                  <li>
+                    <a
+                      rel="nofollow"
+                      title="Reddit"
+                      id="share_reddit"
+                      href="#"
+                      target="_blank"
+                      ><div class="shr_reddit"></div
+                    ></a>
+                  </li>
+                </ul>
+              </div>
+              <div class="tcontinues"></div>
+            </div>
+            <div class="left_panel">
+              <div class="toon_comments" id="comments">
+                <span class="header">
+                  <span style="float: left">Comments</span>
+                  <a
+                    href="#"
+                    class="new"
+                    id="addCommentBtn"
+                    onclick="
+                      showCommentForm();
+                      return false;
+                    "
+                    >Add comment</a
+                  >
+                  <div style="clear: both"></div>
+                </span>
+                <div id="comments_form" style="display: none">
+                  <div class="form2">
+                    <textarea
+                      id="comment_text"
+                      rows="3"
+                      placeholder="Write a comment..."
+                      style="
+                        border: 1px solid #cccccc;
+                        margin: 10px;
+                        width: 580px;
+                        font-family: Arial;
+                        font-size: 10pt;
+                      "
+                    ></textarea>
+                  </div>
+                  <div
+                    class="form2"
+                    style="
+                      text-align: right;
+                      margin-right: 10px;
+                      margin-bottom: 10px;
+                    "
+                  >
+                    <button
+                      onclick="
+                        postCommentHandler();
+                        return false;
+                      "
+                    >
+                      Post
+                    </button>
+                    <button
+                      onclick="
+                        document.getElementById('comments_form').style.display =
+                          'none';
+                        return false;
+                      "
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+                <div id="comments_list">
+                  <p style="color: #888888; font-size: 10pt; padding: 10px">
+                    No comments yet.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="clear: both"></div>
+      </div>
+      <div id="donate_placeholder"></div>
+      <div id="footer_placeholder"></div>
+    </div>
+
+    <script type="module">
+      import { initToon } from "/js/pages/toon-page.js";
+
+      const TOON_ID =
+        new URLSearchParams(window.location.search).get("id") ||
+        decodeURIComponent(
+          window.location.pathname.split("/").filter(Boolean)[1],
+        );
+
+      initToon(TOON_ID);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+<!-- Toon Preview Card Template -->
+<!-- This template should be cloned and populated with data in JavaScript -->
+<div class="toon_preview" data-toon-id="{TOON_ID}">
+  <div class="toon_image">
+    <a href="/toon/{TOON_ID}" title="{TITLE}">
+      <img
+        src="https://ytyhhmwnnlkhhpvsurlm.supabase.co/storage/v1/object/public/previews/{TOON_ID}_100.gif"
+        width="200"
+        height="100"
+        alt="{TITLE}"
+        onerror="this.src = '/img/avatar100.gif'"
+      />
+    </a>
+  </div>
+  <div class="toon_name">
+    <a class="link" href="/toon/{TOON_ID}">{TITLE}</a>
+  </div>
+  <div class="toon_tagline">{FRAME_COUNT}</div>
+  <div class="toon_tagline">{COMMENT_COUNT}</div>
+</div>
