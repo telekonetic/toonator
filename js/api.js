@@ -328,12 +328,12 @@ export async function postComment(toonId, text) {
 }
 
 export async function getToonLikes(toonId) {
-  const { data: toon } = await db
-    .from("animations")
-    .select("likes")
-    .eq("id", toonId)
-    .single();
-  return toon?.likes || 0;
+  // Get actual like count from likes table instead of denormalized column
+  const { count, error } = await db
+    .from("likes")
+    .select("*", { count: "exact", head: true })
+    .eq("animation_id", toonId);
+  return count || 0;
 }
 
 export async function getToonUserLikeStatus(toonId, userId) {
@@ -362,6 +362,20 @@ export async function toggleToonLike(toonId) {
       .delete()
       .eq("animation_id", toonId)
       .eq("user_id", user.id));
+
+    // Decrement likes count in animations table
+    if (!error) {
+      const { data: toon } = await db
+        .from("animations")
+        .select("likes")
+        .eq("id", toonId)
+        .single();
+      const currentLikes = toon?.likes || 0;
+      await db
+        .from("animations")
+        .update({ likes: Math.max(0, currentLikes - 1) })
+        .eq("id", toonId);
+    }
   } else {
     ({ error } = await db
       .from("likes")
@@ -369,6 +383,20 @@ export async function toggleToonLike(toonId) {
         { animation_id: toonId, user_id: user.id },
         { onConflict: "animation_id,user_id", ignoreDuplicates: true },
       ));
+
+    // Increment likes count in animations table
+    if (!error) {
+      const { data: toon } = await db
+        .from("animations")
+        .select("likes")
+        .eq("id", toonId)
+        .single();
+      const currentLikes = toon?.likes || 0;
+      await db
+        .from("animations")
+        .update({ likes: currentLikes + 1 })
+        .eq("id", toonId);
+    }
   }
 
   return { success: !error, liked: !alreadyLiked, error };
